@@ -12,7 +12,7 @@ function checkAnswer() {
 }
 //テスト
 function checkAnswer() {
-  const userAnswer = document.getElementById("answer").value;
+  const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
 
   if (userAnswer === "test") {
     document.getElementById("result").textContent = "正解！";
