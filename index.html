@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CTFアプリ</title>
 </head>
 <body>
+
   <h1>CTF学習アプリ</h1>
-  <p>ここから始まる</p>
+
+  <p id="question">問題：ここに問題が出る</p>
+
+  <input type="text" id="answer" placeholder="答えを入力">
+
+  <button onclick="checkAnswer()">回答</button>
+
+  <p id="result"></p>
+
+  <script src="script.js"></script>
+
 </body>
 </html>
