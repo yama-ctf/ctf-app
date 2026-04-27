@@ -10,3 +10,13 @@ function checkAnswer() {
     result.textContent = "不正解";
   }
 }
+//テスト
+function checkAnswer() {
+  const userAnswer = document.getElementById("answer").value;
+
+  if (userAnswer === "test") {
+    document.getElementById("result").textContent = "正解！";
+  } else {
+    document.getElementById("result").textContent = "不正解";
+  }
+}
