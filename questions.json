@@ -4,5 +4,11 @@
     "answer": "Hello",
     "hint": "Base64",
     "difficulty": 1000
+  },
+  {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
   }
 ]
