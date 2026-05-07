@@ -1,1 +1,8 @@
-
+[
+  {
+    "question": "SGVsbG8=",
+    "answer": "Hello",
+    "hint": "Base64",
+    "difficulty": 1000
+  }
+]
