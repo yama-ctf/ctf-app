@@ -20,16 +20,38 @@ function checkAnswer() {
 
   let userAnswer =
     document.getElementById("answer").value;
-
+  
   let correctAnswer =
     questions[currentQuestion].answer;
-
+  
   let result =
     document.getElementById("result");
-
+  
   if (userAnswer === correctAnswer) {
+
     result.textContent = "正解！";
+
+    // 次の問題へ
+    currentQuestion++;
+
+    // まだ問題がある場合
+    if (currentQuestion < questions.length) {
+
+      showQuestion();
+
+      // 入力欄を空にする
+      document.getElementById("answer").value = "";
+
+    } else {
+
+      document.getElementById("question").textContent =
+        "全問クリア！";
+
+    }
+
   } else {
+
     result.textContent = "不正解";
+
   }
 }
