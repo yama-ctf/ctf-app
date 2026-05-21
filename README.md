@@ -1,1 +1,1 @@
-# ctf-apps
+# ctf-app
