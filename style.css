@@ -4,10 +4,10 @@ body{
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  input{
-    margin-bottom:7xp;
-  }
 
   height: 100vh;
   margin: 0;
 }
+input{
+    margin-bottom:7px;
+  }
