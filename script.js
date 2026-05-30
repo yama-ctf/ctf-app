@@ -27,8 +27,7 @@ function checkAnswer() {
   let result =
     document.getElementById("result");
   
-  if (userAnswer === correctAnswer) {
-
+  if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  //toLowercaseで小文字、大文字を無視する。
     result.textContent = "正解！";
 
     // 次の問題へ
