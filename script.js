@@ -55,3 +55,16 @@ function checkAnswer() {
 
   }
 }
+// 修正版 Base64デコード
+function runBase64() {
+  const input = document.getElementById('tool-base64-input').value.trim();
+  try {
+    // 文字列をバイナリ（Uint8Array）に変換してからデコード
+    const binString = atob(input);
+    const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
+    const decoded = new TextDecoder().decode(bytes);
+    showResult('tool-base64-result', decoded, false);
+  } catch(e) {
+    showResult('tool-base64-result', 'デコード失敗', true);
+  }
+}
