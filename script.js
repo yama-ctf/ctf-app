@@ -11,8 +11,9 @@ fetch("questions.json")
 
 // 問題表示関数
 function showQuestion() {
-  document.getElementById("question").textContent =
-    questions[currentQuestion].question;
+  q=questions[currentQuestion];
+  document.getElementById("difficulty").textContent = "難易度: " + q.difficulty;
+  document.getElementById("question").textContent =q.question;
 }
 
 // 正解判定
