@@ -8,6 +8,9 @@ body{
   height: 100vh;
   margin: 0;
 }
+#64btn{
+  display: none;
+}
 input{
     margin-bottom:16px;
   }
