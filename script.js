@@ -68,3 +68,17 @@ function runBase64() {
     showResult('tool-base64-result', 'デコード失敗', true);
   }
 }
+// Hexデコード
+// 参考: https://stackoverflow.com/questions/3745666
+function runHex() {
+  const input = document.getElementById('tool-hex-input').value.trim();
+  try {
+    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');
+    const decoded = hex.match(/.{1,2}/g).map(function(b) {
+      return String.fromCharCode(parseInt(b, 16));
+    }).join('');
+    showResult('tool-hex-result', decoded, false);
+  } catch(e) {
+    showResult('tool-hex-result', 'デコード失敗', true);
+  }
+}
