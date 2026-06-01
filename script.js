@@ -73,7 +73,8 @@ function runBase64() {
 function runHex() {
   const input = document.getElementById('tool-hex-input').value.trim();
   try {
-    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');
+    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  //replace(/\s+/g, '')は全部の空白をなにもないに変えるという意味（\s+）連続した空白という意味　.replace(/0x/gi, '')これも0xを何もないに変える、gが全部,
+    　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　//iが小文字でも大文字でもよいとしている
     const decoded = hex.match(/.{1,2}/g).map(function(b) {
       return String.fromCharCode(parseInt(b, 16));
     }).join('');
