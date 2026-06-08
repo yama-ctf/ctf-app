@@ -1,23 +1,27 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="style.css">
-<html>
+<html lang="ja">
 <head>
+  <meta charset="UTF-8">
   <title>CTFサイト</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="category"></div>
-<div id="difficulty"></div>
-  <h1>CTF学習サイト</h1>
 
-  <p id="question">読み込み中...</p>
+  <div class="app-container">
 
-  <input type="text" id="answer" placeholder="答えを入力">
+    <aside class="sidebar">
+      <h2>MENU</h2>
+      <p>・問題を解く</p>
+      <p>・問題一覧</p>
+      <p>・ツール</p>
+    </aside>
 
-  <button onclick="checkAnswer()">回答</button>
+    <main class="main-content">
+      <h1>メイン画面</h1>
+      <p>ここに問題やテキストが表示されます。</p>
+    </main>
 
-  <p id="result"></p>
-
-  <script src="script.js"></script>
+  </div>
 
 </body>
 </html>
