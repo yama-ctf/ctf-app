@@ -10,27 +10,34 @@
   <div class="app-container">
 
     <aside class="sidebar">
-  <aside class="sidebar">
-  <h2>MENU</h2>
-  <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
-  <button class="nav-btn" onclick="showScreen('play-screen')">問題を解く</button>
-</aside>
+      <h2>MENU</h2>
+      <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
+      <button class="nav-btn" onclick="showScreen('play-screen')">問題を解く</button>
+    </aside>
 
-<main class="main-content">
-  
-  <div id="home-screen" class="page-screen active">
-    <h1>ホーム画面</h1>
-    <p>ようこそ！メニューから選んでね。</p>
-  </div>
-
-  <div id="play-screen" class="page-screen">
-    <h1>問題画面</h1>
-    <p>【問題】SGVsbG8= をデコードせよ。</p>
-  </div>
-
-</main>
+    <main class="main-content">
+      
+      <div id="home-screen" class="page-screen active">
+        <h1>ホーム画面</h1>
+        <p>ようこそ！メニューから選んでね。</p>
       </div>
 
-  <script src="app.js"></script>
+      <div id="play-screen" class="page-screen">
+        <h1>問題画面</h1>
+        
+        <h3 id="difficulty">難易度: 読み込み中...</h3>
+        <p id="question">問題が表示されます</p>
+        
+        <div style="margin-top: 20px;">
+          <input type="text" id="answer" placeholder="フラグを入力してください" style="padding: 8px; font-size: 16px; color: #000;">
+          <button onclick="checkAnswer()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">送信</button>
+        </div>
+
+        <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
+      </div>
+
+    </main>
+
+  </div> <script src="app.js"></script>
 </body>
 </html>
