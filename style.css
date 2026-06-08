@@ -27,6 +27,35 @@ html, body {
   padding: 20px;              /* 箱の内側にほどよい隙間を作る */
   border-right: 2px solid #334155; /* 右側にうっすら線を引いて境界を作る */
 }
+/* サイドバーのボタン */
+.nav-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #334155;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* ボタンにマウスを乗せたとき */
+.nav-btn:hover {
+  background-color: #0ea5e9;
+}
+
+/* 画面切り替えの仕組み */
+.page-screen {
+  display: none; /* 普段は隠す */
+}
+
+.page-screen.active {
+  display: block; /* activeが付いてる時だけ表示 */
+}
 
 /* ==========================================
    4. 右側：メインコンテンツの見た目
