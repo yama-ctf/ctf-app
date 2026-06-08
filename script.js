@@ -1,6 +1,8 @@
 let questions = [];
 let currentQuestion = 0;
 
+document.addEventListener("DOMContentLoaded", () => {
+
 // JSON読み込み
 fetch("questions.json")
   .then(response => response.json())
