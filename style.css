@@ -35,3 +35,36 @@ html, body {
   flex: 1;                    /* 画面の残りの横幅を「全部使う」という指定 */
   padding: 30px;              /* 箱の内側に隙間を作る */
 }
+/* ==========================================
+   サイドバーのボタンデザイン
+   ========================================== */
+.nav-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #334155; /* ボタンの背景色 */
+  color: white;
+  border: none;
+  border-radius: 6px;        /* 角を少し丸くする */
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;           /* マウスを乗せたら「手」のマークにする */
+  transition: 0.2s;          /* 色の変化をなめらかにする */
+}
+
+/* マウスを乗せた（ホバーした）ときの色変更 */
+.nav-btn:hover {
+  background-color: #0ea5e9; /* サイバーな青色に光らせる */
+}
+
+/* ==========================================
+   画面切り替えの仕組み（ここがポイント！）
+   ========================================== */
+.page-screen {
+  display: none; /* 【重要】普段はすべての画面を非表示（隠す）にする */
+}
+
+.page-screen.active {
+  display: block; /* active というクラスがついている箱だけを表示する */
+}
