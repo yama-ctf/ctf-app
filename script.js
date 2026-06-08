@@ -55,6 +55,19 @@ function checkAnswer() {
 
   }
 }
+function showScreen(screenId) {
+  // 1. まず、すべての画面（.page-screen）から「active」クラスを取り除く（全部隠す）
+  const screens = document.querySelectorAll('.page-screen');
+  screens.forEach(screen => {
+    screen.classList.remove('active');
+  });
+
+  // 2. クリックされたボタンに対応する画面（ID）にだけ「active」クラスをつける（それだけ表示する）
+  const targetScreen = document.getElementById(screenId);
+  if (targetScreen) {
+    targetScreen.classList.add('active');
+  }
+}
 // 修正版 Base64デコード
 function runBase64() {
   const input = document.getElementById('tool-base64-input').value.trim();
