@@ -14,8 +14,6 @@ let currentQuestion = 0;
     targetScreen.classList.add('active');
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
- 
 
 // JSON読み込み
 fetch("questions.json")
