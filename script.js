@@ -1,8 +1,7 @@
 let questions = [];
 let currentQuestion = 0;
 
-document.addEventListener("DOMContentLoaded", () => {
-  function showScreen(screenId) {
+ function showScreen(screenId) {
   // 1. まず、すべての画面（.page-screen）から「active」クラスを取り除く（全部隠す）
   const screens = document.querySelectorAll('.page-screen');
   screens.forEach(screen => {
@@ -15,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
     targetScreen.classList.add('active');
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+ 
 
 // JSON読み込み
 fetch("questions.json")
