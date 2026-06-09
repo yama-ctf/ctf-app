@@ -13,6 +13,9 @@
       <h2>MENU</h2>
       <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
       <button class="nav-btn" onclick="showScreen('play-screen')">問題を解く</button>
+      <button class="nav-btn" onclick="showScreen('list-screen')">問題一覧</button>
+      <button class="nav-btn" onclick="showScreen('tool-screen')">解析ツール</button>
+      <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
     </aside>
 
     <main class="main-content">
@@ -23,8 +26,7 @@
       </div>
 
       <div id="play-screen" class="page-screen">
-        <h1>問題画面</h1>
-        
+        <h1>問題を解く</h1>
         <h3 id="difficulty">難易度: 読み込み中...</h3>
         <p id="question">問題が表示されます</p>
         
@@ -32,12 +34,31 @@
           <input type="text" id="answer" placeholder="フラグを入力してください" style="padding: 8px; font-size: 16px; color: #000;">
           <button onclick="checkAnswer()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">送信</button>
         </div>
-
         <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
+      </div>
+
+      <div id="list-screen" class="page-screen">
+        <h1>問題一覧</h1>
+        <p>ここに全問題のリストが並ぶ予定です（開発中）。</p>
+      </div>
+
+      <div id="tool-screen" class="page-screen">
+        <h1>解析ツール</h1>
+        <h3>Base64 デコーダー</h3>
+        <input type="text" id="tool-base64-input" placeholder="デコードしたい文字列" style="padding: 8px; font-size: 16px; color: #000;">
+        <button onclick="runBase64()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
+        <p id="tool-base64-result" style="margin-top: 10px; color: #0ea5e9;"></p>
+      </div>
+
+      <div id="save-screen" class="page-screen">
+        <h1>セーブ・記録</h1>
+        <p>ここに現在のあなたのレートや、進捗バーが表示される予定です（開発中）。</p>
       </div>
 
     </main>
 
-  </div> <script src="script.js"></script>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
