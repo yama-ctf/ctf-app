@@ -97,3 +97,17 @@ html, body {
 .page-screen.active {
   display: block; /* active というクラスがついている箱だけを表示する */
 }
+/* 解析ツール画面用のシンプルな装飾 */
+#tool-base64-input {
+  width: 300px;
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+#tool-base64-result {
+  font-family: monospace; /* 文字の横幅が揃うフォント（コードが見やすくなる） */
+  background-color: #1e293b;
+  padding: 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
