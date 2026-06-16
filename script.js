@@ -66,18 +66,46 @@ function checkAnswer() {
 }
 
 // ==========================================
-// 修正版 Base64デコード
+// 改造版 Base64デコード（画像対応！）
 // ==========================================
 function runBase64() {
   const input = document.getElementById('tool-base64-input').value.trim();
+  const resultText = document.getElementById('tool-base64-result');
+  const resultImg = document.getElementById('tool-base64-img');
+  
+  // 一度表示をリセットする
+  resultText.textContent = "";
+  resultImg.style.display = "none";
+  resultImg.src = "";
+
+  if (!input) return;
+
   try {
-    // 文字列をバイナリ（Uint8Array）に変換してからデコード
-    const binString = atob(input);
-    const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
-    const decoded = new TextDecoder().decode(bytes);
-    showResult('tool-base64-result', decoded, false);
+    // 【判定の魔法】入力された文字がPNGやJPEG、GIFなどの画像データの特徴を持っているかチェック
+    // ※大体のPNG画像のBase64は「iVBORw」から始まります
+    if (input.startsWith('iVBORw') || input.startsWith('/9j/') || input.startsWith('R0lG')) {
+      
+      // 画像の種類を判定（PNGかJPGかGIFか）
+      let mimeType = 'image/png';
+      if (input.startsWith('/9j/')) mimeType = 'image/jpeg';
+      if (input.startsWith('R0lG')) mimeType = 'image/gif';
+
+      // <img>タグに「Base64のデータをそのまま画像として表示しろ！」という命令を出す
+      resultImg.src = `data:${mimeType};base64,${input}`;
+      resultImg.style.display = "block"; // 画像を表示する
+      
+      showResult('tool-base64-result', '画像のデコードに成功しました！', false);
+      
+    } else {
+      // 画像じゃなければ、今まで通り普通の文字としてデコードする
+      const binString = atob(input);
+      const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
+      const decoded = new TextDecoder().decode(bytes);
+      
+      showResult('tool-base64-result', decoded, false);
+    }
   } catch(e) {
-    showResult('tool-base64-result', 'デコード失敗', true);
+    showResult('tool-base64-result', 'デコード失敗（正しいBase64ではありません）', true);
   }
 }
 
