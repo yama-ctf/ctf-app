@@ -45,13 +45,17 @@
      <div id="tool-screen" class="page-screen">
         <h1>解析ツール</h1>
         
-        <div style="margin-bottom: 40px;">
-          <h3>Base64 デコーダー</h3>
-          <input type="text" id="tool-base64-input" placeholder="デコードしたい文字列" style="padding: 8px; font-size: 16px; color: #000;">
-          <button onclick="runBase64()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
-          
-          <br><p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
-        </div>
+      <div style="margin-bottom: 40px;">
+    <h3>Base64 デコーダー</h3>
+    <input type="text" id="tool-base64-input" placeholder="デコードしたい文字列" style="padding: 8px; font-size: 16px; color: #000;">
+    <button onclick="runBase64()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
+  
+  <br>
+  
+  <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
+  
+  <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none; border: 2px dashed #334155;">
+</div>
 
         <div>
           <h3>Hex (16進数) デコーダー</h3>
