@@ -103,6 +103,12 @@ html, body {
   border-radius: 4px;
   border: 1px solid #334155;
 }
+#tool-base64-img {
+  min-width: 150px;  /* 小さすぎる画像も最低150pxに引き伸ばす */
+  min-height: 150px;
+  border: 1px dashed #ccc; /* どこに画像があるかわかりやすくする枠線 */
+  image-rendering: pixelated; /* ドット絵がボヤけずにクッキリ拡大される魔法のプロパティ */
+}
 
 #tool-base64-result {
   font-family: monospace; /* 文字の横幅が揃うフォント（コードが見やすくなる） */
