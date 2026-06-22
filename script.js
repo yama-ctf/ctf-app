@@ -19,13 +19,14 @@ function showScreen(screenId) {
 }
 
 // ==========================================
-// JSON読み込み
+// JSON読み込み（【改造】読み込み成功時に一覧生成を呼び出す）
 // ==========================================
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
     questions = data;
-    showQuestion();
+    showQuestion();        // 最初の一問目をセット
+    createQuestionList();  // 【追加】問題一覧を自動で作る！
   });
 
 // ==========================================
@@ -95,8 +96,6 @@ function runBase64() {
 
   try {
     // 【判定の魔法】
-    // 最初からデータURIだった場合、または純粋な文字列の先頭が画像の特徴を持っている場合
-    // (大文字小文字のブレを防ぐため、toLowerCase()で小文字に統一して判定します)
     const lowerInput = input.toLowerCase();
     
     if (isImageUri || lowerInput.startsWith('ivborw') || lowerInput.startsWith('/9j/') || lowerInput.startsWith('r0lg')) {
@@ -125,13 +124,14 @@ function runBase64() {
     showResult('tool-base64-result', 'デコード失敗（正しいBase64ではありません）', true);
   }
 }
+
 // ==========================================
 // Hexデコード
 // ==========================================
 function runHex() {
   const input = document.getElementById('tool-hex-input').value.trim();
   try {
-    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  //replace(/\s+/g, '')は全部の空白をなにもないに変えるという意味（\s+）連続した空白という意味 .replace(/0x/gi, '')これも0xを何もないに変える、gが全部, iが小文字でも大文字でもよいとしている
+    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  //replace(/\s+/g, '')は全部の空白をなもしないに変えるという意味
     const decoded = hex.match(/.{1,2}/g).map(function(b) {
       return String.fromCharCode(parseInt(b, 16));
     }).join('');
@@ -142,19 +142,63 @@ function runHex() {
 }
 
 // ==========================================
-// 【ここに追加しました！】デコード結果を画面に表示する関数
+// デコード結果を画面に表示する関数
 // ==========================================
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
-    // 結果の文字を書き換える
     resultElement.textContent = message;
-    
-    // エラーなら赤文字、成功なら青緑っぽく光らせる
     if (isError) {
       resultElement.style.color = "#ef4444"; // エラー時の赤
     } else {
       resultElement.style.color = "#00ffcc"; // サイバーなネオンブルー
     }
   }
+}
+
+// ==========================================
+// 【新設】問題一覧を自動で生成する関数（一番てまえに追加！）
+// ==========================================
+function createQuestionList() {
+  const listContainer = document.getElementById("question-list");
+  if (!listContainer) return;
+
+  listContainer.innerHTML = ""; // 初期化
+
+  questions.forEach((q, index) => {
+    // 1. ボタン部品を作る
+    const btn = document.createElement("button");
+    btn.className = "nav-btn"; // デザインの使い回し
+    btn.style.backgroundColor = "#1e293b";
+    btn.style.border = "1px solid #334155";
+    btn.style.margin = "0"; // グリッド配置用にマージン調整
+    
+    // 2. 表示する文字をセット
+    btn.innerHTML = `
+      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
+      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
+    `;
+
+    // 3. クリックされた時のジャンプ処理を仕込む
+    btn.onclick = function() {
+      selectQuestion(index);
+    };
+
+    // 4. 一覧の箱に追加
+    listContainer.appendChild(btn);
+  });
+}
+
+// ==========================================
+// 【新設】一覧から問題が選ばれたときに動く関数
+// ==========================================
+function selectQuestion(index) {
+  currentQuestion = index; // 選んだ番号に変更
+  showQuestion();          // その問題を表示
+  
+  // 過去の正誤判定のテキストと、入力欄を綺麗に消す
+  document.getElementById("result").textContent = "";
+  document.getElementById("answer").value = "";
+  
+  showScreen("play-screen"); // 問題画面にジャンプ！
 }
