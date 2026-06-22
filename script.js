@@ -69,7 +69,8 @@ function checkAnswer() {
 // 改造版 Base64デコード（画像対応！）
 // ==========================================
 function runBase64() {
-  const input = document.getElementById('tool-base64-input').value.trim();
+  // 1. 入力を取得する
+  let input = document.getElementById('tool-base64-input').value.trim();
   const resultText = document.getElementById('tool-base64-result');
   const resultImg = document.getElementById('tool-base64-img');
   
@@ -79,6 +80,12 @@ function runBase64() {
   resultImg.src = "";
 
   if (!input) return;
+
+  // ★ここに前処理を追加しました
+  // 「data:image/png;base64,」のようなヘッダーがあればカンマ以降だけを抽出する
+  if (input.includes(',')) {
+    input = input.split(',')[1].trim(); // カンマの後ろを取得し、念のため前後の空白を削る
+  }
 
   try {
     // 【判定の魔法】入力された文字がPNGやJPEG、GIFなどの画像データの特徴を持っているかチェック
@@ -108,7 +115,6 @@ function runBase64() {
     showResult('tool-base64-result', 'デコード失敗（正しいBase64ではありません）', true);
   }
 }
-
 // ==========================================
 // Hexデコード
 // ==========================================
