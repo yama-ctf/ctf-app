@@ -69,42 +69,49 @@ function checkAnswer() {
 // 改造版 Base64デコード（画像対応！）
 // ==========================================
 function runBase64() {
-  // 1. 入力を取得する
   let input = document.getElementById('tool-base64-input').value.trim();
   const resultText = document.getElementById('tool-base64-result');
   const resultImg = document.getElementById('tool-base64-img');
   
-  // 一度表示をリセットする
   resultText.textContent = "";
   resultImg.style.display = "none";
   resultImg.src = "";
 
   if (!input) return;
 
-  // ★ここに前処理を追加しました
-  // 「data:image/png;base64,」のようなヘッダーがあればカンマ以降だけを抽出する
+  // 元々「data:」形式だったかどうかのフラグ
+  let isDataUriImage = false;
+  let mimeType = 'image/png'; // デフォルト
+
+  // 「data:image/png;base64,」のようなヘッダーがあれば処理
   if (input.includes(',')) {
-    input = input.split(',')[1].trim(); // カンマの後ろを取得し、念のため前後の空白を削る
+    // 削る前に、画像形式（png, jpeg, gif）をヘッダーから盗み見る
+    if (input.startsWith('data:image/jpeg')) mimeType = 'image/jpeg';
+    if (input.startsWith('data:image/gif')) mimeType = 'image/gif';
+    
+    isDataUriImage = true; // data:image形式確定フラグを立てる
+    input = input.split(',')[1].trim(); 
   }
 
   try {
-    // 【判定の魔法】入力された文字がPNGやJPEG、GIFなどの画像データの特徴を持っているかチェック
-    // ※大体のPNG画像のBase64は「iVBORw」から始まります
-    if (input.startsWith('iVBORw') || input.startsWith('/9j/') || input.startsWith('R0lG')) {
+    // 【判定の魔法】
+    // フラグが立っているか、または純粋なBase64の先頭が画像の特徴を持っている場合
+    if (isDataUriImage || input.startsWith('iVBORw') || input.startsWith('/9j/') || input.startsWith('R0lG')) {
       
-      // 画像の種類を判定（PNGかJPGかGIFか）
-      let mimeType = 'image/png';
-      if (input.startsWith('/9j/')) mimeType = 'image/jpeg';
-      if (input.startsWith('R0lG')) mimeType = 'image/gif';
+      // 純粋なBase64から判定する場合の予備ロジック
+      if (!isDataUriImage) {
+        if (input.startsWith('/9j/')) mimeType = 'image/jpeg';
+        if (input.startsWith('R0lG')) mimeType = 'image/gif';
+      }
 
-      // <img>タグに「Base64のデータをそのまま画像として表示しろ！」という命令を出す
+      // 画像を表示する
       resultImg.src = `data:${mimeType};base64,${input}`;
-      resultImg.style.display = "block"; // 画像を表示する
+      resultImg.style.display = "block";
       
       showResult('tool-base64-result', '画像のデコードに成功しました！', false);
       
     } else {
-      // 画像じゃなければ、今まで通り普通の文字としてデコードする
+      // 画像じゃなければテキストデコード
       const binString = atob(input);
       const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
       const decoded = new TextDecoder().decode(bytes);
