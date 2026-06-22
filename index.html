@@ -81,21 +81,3 @@
 
 
 
-<div style="margin-top: 50px; padding: 20px; border: 3px dashed #4a5568; background: #1a202c; text-align: center; color: white;">
-    <h3>【テストデータ作成用】ここに画像をドロップしてね</h3>
-    <input type="file" id="test-file-picker" accept="image/*" style="margin-bottom: 10px;"><br>
-    <textarea id="test-base64-output" rows="5" style="width: 100%; max-width: 500px; background: #2d3748; color: #fff; border: 1px solid #718096;" placeholder="ここにBase64が出力されます" readonly></textarea>
-</div>
-
-<script>
-document.getElementById('test-file-picker').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        // 完璧なデータURI形式のBase64をテキストエリアに出力する
-        document.getElementById('test-base64-output').value = event.target.result;
-    };
-    reader.readAsDataURL(file);
-});
-</script>
