@@ -11,7 +11,34 @@
     "hint": "Hex",
     "difficulty": 1200
   },
-  {
-  "qestion":"12"
-  }
+ {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
+  },
+   {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
+  },
+   {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
+  },
+   {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
+  },
+   {
+    "question": "49 20 6c 6f 76 65 20 43 54 46",
+    "answer": "I love CTF",
+    "hint": "Hex",
+    "difficulty": 1200
+  },
 ]
