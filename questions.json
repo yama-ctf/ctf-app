@@ -1,20 +1,32 @@
 [
   {
-    "id": 1,
     "question": "SGVsbG8= をデコードせよ",
+    "hint":"base34",
     "answer": "Hello",
     "difficulty": 100
   },
   {
-    "id": 2,
     "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
+    "ihnt":"Hex",
     "answer": "CTF",
     "difficulty": 300
   },
   {
-    "id": 3,
     "question": "画像からフラグを見つけ出せ！（※これは次のステップの予告です）",
+    "hint":"元気に解こう",
     "answer": "flag{clear}",
     "difficulty": 500
+  },
+   {
+    "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
+    "ihnt":"Hex",
+    "answer": "CTF",
+    "difficulty": 300
+  },
+   {
+    "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
+    "ihnt":"Hex",
+    "answer": "CTF",
+    "difficulty": 300
   }
 ]
