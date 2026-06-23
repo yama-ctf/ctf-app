@@ -1,14 +1,20 @@
 [
   {
-    "question": "SGVsbG8=",
+    "id": 1,
+    "question": "SGVsbG8= をデコードせよ",
     "answer": "Hello",
-    "hint": "Base64",
-    "difficulty": 1000
+    "difficulty": 100
   },
   {
-    "question": "49 20 6c 6f 76 65 20 43 54 46",
-    "answer": "I love CTF",
-    "hint": "Hex",
-    "difficulty": 1200
+    "id": 2,
+    "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
+    "answer": "CTF",
+    "difficulty": 300
+  },
+  {
+    "id": 3,
+    "question": "画像からフラグを見つけ出せ！（※これは次のステップの予告です）",
+    "answer": "flag{clear}",
+    "difficulty": 500
   }
 ]
