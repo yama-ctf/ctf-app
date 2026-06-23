@@ -1,119 +1,137 @@
 /* ==========================================
-   1. 画面全体の基本設定（おまじない）
+   1. 画面全体の基本設定（目標の色：深い紺黒）
    ========================================== */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   font-family: sans-serif;
-  background-color: #0f172a; /* ダークモード風の背景色 */
+  background-color: #0b111e; /* 目標画像と同じ、深みのあるダークネイビー */
   color: #ffffff;            /* 文字は白 */
+  overflow: hidden;          /* 画面全体の変なスクロールを防ぐ */
 }
 
-/* ==========================================
-   2. 画面を綺麗に「横並び」にする魔法
-   ========================================== */
+/* 画面を綺麗に「横並び」にする魔法 */
 .app-container {
-  display: flex;  /* これを書くだけで、中のサイドバーとメインが横に並ぶ！ */
-  height: 100vh;  /* 画面の縦幅いっぱいに広げる（100vh = Viewport Height） */
+  display: flex;
+  height: 100vh;
 }
 
 /* ==========================================
-   3. 左側：サイドバーの見た目
+   2. 左側：サイドバー（ツートンカラー仕様）
    ========================================== */
 .sidebar {
-  width: 250px;               /* 幅を250ピクセルに固定 */
-  background-color: #1e293b;  /* メインより少し明るい紺色 */
-  padding: 20px;              /* 箱の内側にほどよい隙間を作る */
-  border-right: 2px solid #334155; /* 右側にうっすら線を引いて境界を作る */
+  width: 260px;               /* 幅を260pxに微調整 */
+  background-color: #121824;  /* メイン画面より少し明るい絶妙な紺色 */
+  padding: 24px 16px;         /* 余白を広げてスタイリッシュに */
+  border-right: 1px solid #1e2638; /* より細くスマートな境界線 */
+  display: flex;
+  flex-direction: column;
 }
-/* サイドバーのボタン */
+
+.sidebar h2 {
+  font-size: 18px;
+  color: #94a3b8;
+  margin-top: 0;
+  margin-bottom: 24px;
+  padding-left: 8px;
+  letter-spacing: 1px;
+}
+
+/* サイドバーのボタン：目標画像のように普段は背景を透明に */
 .nav-btn {
   display: block;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  background-color: #334155;
-  color: white;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  background-color: transparent; /* 普段は透明 */
+  color: #94a3b8;               /* 落ち着いたグレー文字 */
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;           /* 少し角丸を大きく */
   font-size: 16px;
   text-align: left;
   cursor: pointer;
-  transition: 0.2s;
+  transition: all 0.2s;
 }
 
-/* ボタンにマウスを乗せたとき */
+/* マウスを乗せた（ホバーした）ときと、アクティブなボタンの見た目 */
 .nav-btn:hover {
-  background-color: #0ea5e9;
-}
-
-/* 画面切り替えの仕組み */
-.page-screen {
-  display: none; /* 普段は隠す */
-}
-
-.page-screen.active {
-  display: block; /* activeが付いてる時だけ表示 */
+  background-color: #1e293b;    /* 少し明るい紺色の背景が浮き出る */
+  color: #38bdf8;               /* 目標画像のような鮮やかな水色に光る */
 }
 
 /* ==========================================
-   4. 右側：メインコンテンツの見た目
+   3. 上部：ステータスカード（レート・正解数など）
+   ========================================== */
+.status-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4列に綺麗に並べる */
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.status-card {
+  background-color: #111827;     /* カードの背景 */
+  border: 1px solid #1f2937;    /* 細い枠線 */
+  border-radius: 12px;          /* 丸みのある角 */
+  padding: 16px 20px;
+}
+
+.status-label {
+  font-size: 14px;
+  color: #6b7280;               /* ラベルは目立たないグレー */
+  margin-bottom: 6px;
+}
+
+.status-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #38bdf8;               /* 数字はサイバーなライトブルー */
+}
+
+/* ==========================================
+   4. 右側：メインコンテンツと画面切り替え
    ========================================== */
 .main-content {
-  flex: 1;                    /* 画面の残りの横幅を「全部使う」という指定 */
-  padding: 30px;              /* 箱の内側に隙間を作る */
-}
-/* ==========================================
-   サイドバーのボタンデザイン
-   ========================================== */
-.nav-btn {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  background-color: #334155; /* ボタンの背景色 */
-  color: white;
-  border: none;
-  border-radius: 6px;        /* 角を少し丸くする */
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;           /* マウスを乗せたら「手」のマークにする */
-  transition: 0.2s;          /* 色の変化をなめらかにする */
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;             /* スクロールはここだけでする */
 }
 
-/* マウスを乗せた（ホバーした）ときの色変更 */
-.nav-btn:hover {
-  background-color: #0ea5e9; /* サイバーな青色に光らせる */
-}
-
-/* ==========================================
-   画面切り替えの仕組み（ここがポイント！）
-   ========================================== */
+/* 画面切り替えの仕組み（今までの仕組みを完全キープ） */
 .page-screen {
-  display: none; /* 【重要】普段はすべての画面を非表示（隠す）にする */
+  display: none;
 }
-
 .page-screen.active {
-  display: block; /* active というクラスがついている箱だけを表示する */
-}
-/* 解析ツール画面用のシンプルな装飾 */
-#tool-base64-input {
-  width: 300px;
-  border-radius: 4px;
-  border: 1px solid #334155;
-}
-#tool-base64-img {
-  min-width: 150px;  /* 小さすぎる画像も最低150pxに引き伸ばす */
-  min-height: 150px;
-  border: 1px dashed #ccc; /* どこに画像があるかわかりやすくする枠線 */
-  image-rendering: pixelated; /* ドット絵がボヤけずにクッキリ拡大される魔法のプロパティ */
+  display: block;
 }
 
-#tool-base64-result {
-  font-family: monospace; /* 文字の横幅が揃うフォント（コードが見やすくなる） */
-  background-color: #1e293b;
+/* ==========================================
+   5. 解析ツール画面用の装飾（機能強化）
+   ========================================== */
+#tool-base64-input, #tool-hex-input {
+  width: 300px;
   padding: 10px;
-  border-radius: 4px;
+  font-size: 16px;
+  background-color: #111827;   /* 入力欄もダークに */
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #ffffff;
+}
+
+#tool-base64-img {
+  min-width: 150px;
+  min-height: 150px;
+  border: 2px dashed #334155;  /* 目標画像に合わせた渋い破線枠 */
+  image-rendering: pixelated;
+  background-color: #111827;
+}
+
+#tool-base64-result, #tool-hex-result {
+  font-family: monospace;
+  background-color: #111827;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #1f2937;
   display: inline-block;
 }
