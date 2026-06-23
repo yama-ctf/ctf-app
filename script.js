@@ -2,6 +2,13 @@ let questions = [];
 let currentQuestion = 0;
 
 // ==========================================
+// 【新設】ステータスを記録するための変数
+// ==========================================
+let userRate = 1000;    // 初期レート
+let userSolved = 0;    // 正解数
+let userAttempts = 0;  // 挑戦数
+
+// ==========================================
 // 画面切り替え関数
 // ==========================================
 function showScreen(screenId) {
@@ -19,14 +26,14 @@ function showScreen(screenId) {
 }
 
 // ==========================================
-// JSON読み込み（【改造】読み込み成功時に一覧生成を呼び出す）
+// JSON読み込み
 // ==========================================
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
     questions = data;
     showQuestion();        // 最初の一問目をセット
-    createQuestionList();  // 【追加】問題一覧を自動で作る！
+    createQuestionList();  // 問題一覧を自動で作る！
   });
 
 // ==========================================
@@ -40,15 +47,39 @@ function showQuestion() {
 }
 
 // ==========================================
-// 正解判定
+// 【新設】上部のステータス画面を最新データに書き換える関数
+// ==========================================
+function updateStatusDOM() {
+  // 1. レート、正解数、挑戦数を画面に反映
+  document.getElementById("user-rate").textContent = userRate;
+  document.getElementById("user-solved").textContent = userSolved;
+  document.getElementById("user-attempts").textContent = userAttempts;
+
+  // 2. 正答率を計算（挑戦数が0の時は0%にするエラー回避）
+  let accuracy = 0;
+  if (userAttempts > 0) {
+    accuracy = Math.round((userSolved / userAttempts) * 100); // 四捨五入してパーセントに
+  }
+  document.getElementById("user-accuracy").textContent = accuracy + "%";
+}
+
+// ==========================================
+// 正解判定（【改造】ステータスの自動変動を追加！）
 // ==========================================
 function checkAnswer() {
   let userAnswer = document.getElementById("answer").value;
   let correctAnswer = questions[currentQuestion].answer;
   let result = document.getElementById("result");
   
+  // 送信ボタンを押したので、正解・不正解に関わらず「挑戦数」を1増やす
+  userAttempts++;
+
   if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  //toLowercaseで小文字、大文字を無視する。
     result.textContent = "正解！";
+
+    // 正解したので「正解数」を1増やし、レートを「+20」する
+    userSolved++;
+    userRate += 20;
 
     // 次の問題へ
     currentQuestion++;
@@ -63,7 +94,16 @@ function checkAnswer() {
     }
   } else {
     result.textContent = "不正解";
+    // 間違えたらレートを「-10」する（0未満にはならない安全設計）
+    if (userRate > 10) {
+      userRate -= 10;
+    } else {
+      userRate = 0;
+    }
   }
+
+  // すべての計算が終わったので、最新の数値を画面上部にパッと反映！
+  updateStatusDOM();
 }
 
 // ==========================================
@@ -157,7 +197,7 @@ function showResult(resultId, message, isError) {
 }
 
 // ==========================================
-// 【新設】問題一覧を自動で生成する関数（一番てまえに追加！）
+// 問題一覧を自動で生成する関数
 // ==========================================
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
@@ -190,7 +230,7 @@ function createQuestionList() {
 }
 
 // ==========================================
-// 【新設】一覧から問題が選ばれたときに動く関数
+// 一覧から問題が選ばれたときに動く関数
 // ==========================================
 function selectQuestion(index) {
   currentQuestion = index; // 選んだ番号に変更
