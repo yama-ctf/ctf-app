@@ -4,9 +4,9 @@ let currentQuestion = 0;
 // ==========================================
 // ステータスを記録するための変数
 // ==========================================
-let userRate = 1000;   // 初期レート
-let userSolved = 0;    // 正解数
-let userAttempts = 0;  // 挑戦数
+let userRate = 1000;   
+let userSolved = 0;    
+let userAttempts = 0;  
 
 // ==========================================
 // 画面切り替え関数
@@ -126,20 +126,20 @@ function checkAnswer() {
 }
 
 // ==========================================
-// 【演習画面用】Base64デコード（画像対応）
+// 【演習画面用】Base64デコード
 // ==========================================
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
 
 // ==========================================
-// 【独立画面用】Base64デコード（画像対応）
+// 【独立画面用】Base64デコード
 // ==========================================
 function runIndependentBase64() {
   decodeBase64Logic('independent-base64-input', 'independent-base64-result', 'independent-base64-img');
 }
 
-// Base64デコードの共通共通処理ロジック
+// Base64処理の共通化
 function decodeBase64Logic(inputId, resultId, imgId) {
   let input = document.getElementById(inputId).value.trim();
   const resultText = document.getElementById(resultId);
@@ -195,7 +195,7 @@ function runIndependentHex() {
   decodeHexLogic('independent-hex-input', 'independent-hex-result');
 }
 
-// Hexデコードの共通処理ロジック
+// Hex処理の共通化
 function decodeHexLogic(inputId, resultId) {
   const input = document.getElementById(inputId).value.trim();
   try {
@@ -210,7 +210,7 @@ function decodeHexLogic(inputId, resultId) {
 }
 
 // ==========================================
-// デコード結果を表示する共通関数
+// 結果表示関数
 // ==========================================
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
@@ -225,7 +225,7 @@ function showResult(resultId, message, isError) {
 }
 
 // ==========================================
-// 問題一覧の生成
+// 問題一覧の自動生成
 // ==========================================
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
@@ -252,7 +252,7 @@ function createQuestionList() {
 }
 
 // ==========================================
-// 問題選択
+// 一覧から問題を選択
 // ==========================================
 function selectQuestion(index) {
   currentQuestion = index; 
