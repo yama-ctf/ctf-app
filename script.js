@@ -2,9 +2,9 @@ let questions = [];
 let currentQuestion = 0;
 
 // ==========================================
-// 【新設】ステータスを記録するための変数
+// ステータスを記録するための変数
 // ==========================================
-let userRate = 1000;    // 初期レート
+let userRate = 1000;   // 初期レート
 let userSolved = 0;    // 正解数
 let userAttempts = 0;  // 挑戦数
 
@@ -23,6 +23,37 @@ function showScreen(screenId) {
   if (targetScreen) {
     targetScreen.classList.add('active');
   }
+}
+
+// ==========================================
+// 【新設】解析ツールのドロップダウンを開閉する関数
+// ==========================================
+function toggleDropdown() {
+  const dropdown = document.getElementById('tools-dropdown');
+  const arrow = document.getElementById('arrow-icon');
+  
+  if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
+    // 開く（子メニューの実際の高さに合わせて広げる）
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+    arrow.style.transform = "rotate(180deg)"; // ▽ を上にひっくり返す
+  } else {
+    // 閉じる
+    dropdown.style.maxHeight = "0px";
+    arrow.style.transform = "rotate(0deg)";
+  }
+}
+
+// ==========================================
+// 【新設】ドロップダウンから特定のツール位置へスクロールさせる関数
+// ==========================================
+function scrollToTool(type) {
+  setTimeout(() => {
+    const targetId = type === 'base64' ? 'tool-section-base64' : 'tool-section-hex';
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50); // 画面切り替え(showScreen)が完了するのを少し待ってからスクロール
 }
 
 // ==========================================
@@ -47,7 +78,7 @@ function showQuestion() {
 }
 
 // ==========================================
-// 【新設】上部のステータス画面を最新データに書き換える関数
+// 上部のステータス画面を最新データに書き換える関数
 // ==========================================
 function updateStatusDOM() {
   // 1. レート、正解数、挑戦数を画面に反映
@@ -64,7 +95,7 @@ function updateStatusDOM() {
 }
 
 // ==========================================
-// 正解判定（【改造】ステータスの自動変動を追加！）
+// 正解判定（ステータスの自動変動を追加！）
 // ==========================================
 function checkAnswer() {
   let userAnswer = document.getElementById("answer").value;
