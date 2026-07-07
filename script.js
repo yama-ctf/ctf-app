@@ -26,34 +26,36 @@ function showScreen(screenId) {
 }
 
 // ==========================================
-// 【新設】解析ツールのドロップダウンを開閉する関数
+// 【新設】解答欄の下の「簡易解析ツール ▽」を開閉する関数
 // ==========================================
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
   const arrow = document.getElementById('arrow-icon');
   
   if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
-    // 開く（子メニューの実際の高さに合わせて広げる）
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-    arrow.style.transform = "rotate(180deg)"; // ▽ を上にひっくり返す
+    dropdown.style.maxHeight = "500px"; // ツールがしっかり収まる高さを確保
+    arrow.style.transform = "rotate(180deg)"; // ▽を上にひっくり返す
   } else {
-    // 閉じる
     dropdown.style.maxHeight = "0px";
-    arrow.style.transform = "rotate(0deg)";
+    arrow.style.transform = "rotate(0deg)"; // 元に戻す
   }
 }
 
 // ==========================================
-// 【新設】ドロップダウンから特定のツール位置へスクロールさせる関数
+// 【新設】セレクトボックスで「Base64」と「Hex」の表示を切り替える関数
 // ==========================================
-function scrollToTool(type) {
-  setTimeout(() => {
-    const targetId = type === 'base64' ? 'tool-section-base64' : 'tool-section-hex';
-    const targetElement = document.getElementById(targetId);
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, 50); // 画面切り替え(showScreen)が完了するのを少し待ってからスクロール
+function switchInlineTool() {
+  const selected = document.getElementById('inline-tool-selector').value;
+  const base64Area = document.getElementById('inline-base64-area');
+  const hexArea = document.getElementById('inline-hex-area');
+  
+  if (selected === 'base64') {
+    base64Area.style.display = 'block';
+    hexArea.style.display = 'none';
+  } else {
+    base64Area.style.display = 'none';
+    hexArea.style.display = 'block';
+  }
 }
 
 // ==========================================
@@ -186,90 +188,3 @@ function runBase64() {
     } else {
       // 画像じゃなければ、普通の文字としてデコードする
       const binString = atob(input);
-      const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
-      const decoded = new TextDecoder().decode(bytes);
-      
-      showResult('tool-base64-result', decoded, false);
-    }
-  } catch(e) {
-    showResult('tool-base64-result', 'デコード失敗（正しいBase64ではありません）', true);
-  }
-}
-
-// ==========================================
-// Hexデコード
-// ==========================================
-function runHex() {
-  const input = document.getElementById('tool-hex-input').value.trim();
-  try {
-    const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  //replace(/\s+/g, '')は全部の空白をなもしないに変えるという意味
-    const decoded = hex.match(/.{1,2}/g).map(function(b) {
-      return String.fromCharCode(parseInt(b, 16));
-    }).join('');
-    showResult('tool-hex-result', decoded, false);
-  } catch(e) {
-    showResult('tool-hex-result', 'デコード失敗', true);
-  }
-}
-
-// ==========================================
-// デコード結果を画面に表示する関数
-// ==========================================
-function showResult(resultId, message, isError) {
-  const resultElement = document.getElementById(resultId);
-  if (resultElement) {
-    resultElement.textContent = message;
-    if (isError) {
-      resultElement.style.color = "#ef4444"; // エラー時の赤
-    } else {
-      resultElement.style.color = "#00ffcc"; // サイバーなネオンブルー
-    }
-  }
-}
-
-// ==========================================
-// 問題一覧を自動で生成する関数
-// ==========================================
-function createQuestionList() {
-  const listContainer = document.getElementById("question-list");
-  if (!listContainer) return;
-
-  listContainer.innerHTML = ""; // 初期化
-
-  questions.forEach((q, index) => {
-    // 1. ボタン部品を作る
-    const btn = document.createElement("button");
-    btn.className = "nav-btn"; // デザインの使い回し
-    btn.style.backgroundColor = "#1e293b";
-    btn.style.border = "1px solid #334155";
-    btn.style.margin = "0"; // グリッド配置用にマージン調整
-    
-    // 2. 表示する文字をセット
-    btn.innerHTML = `
-      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
-      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
-    `;
-
-    // 3. クリックされた時のジャンプ処理を仕込む
-    btn.onclick = function() {
-      selectQuestion(index);
-    };
-
-    // 4. 一覧の箱に追加
-    listContainer.appendChild(btn);
-  });
-}
-
-// ==========================================
-// 一覧から問題が選ばれたときに動く関数
-// ==========================================
-function selectQuestion(index) {
-  currentQuestion = index; // 選んだ番号に変更
-  showQuestion();          // その問題を表示
-  
-  // 過去の正誤判定のテキストと、入力欄を綺麗に消す
-  document.getElementById("result").textContent = "";
-  document.getElementById("answer").value = "";
-  
-  showScreen("play-screen"); // 問題画面にジャンプ！
-}
