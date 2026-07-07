@@ -14,17 +14,7 @@
       <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
       <button class="nav-btn" onclick="showScreen('play-screen')">解析演習</button>
       <button class="nav-btn" onclick="showScreen('list-screen')">問題一覧</button>
-      
-      <div class="dropdown-menu">
-        <button class="nav-btn menu-toggle" onclick="toggleDropdown()">
-          🛠️ 解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
-        </button>
-        <div id="tools-dropdown" class="dropdown-container">
-          <button class="nav-btn" onclick="showScreen('tool-screen'); scrollToTool('base64')">・Base64 デコーダー</button>
-          <button class="nav-btn" onclick="showScreen('tool-screen'); scrollToTool('hex')">・Hex デコーダー</button>
-        </div>
-      </div>
-      
+      <button class="nav-btn" onclick="showScreen('tool-screen')">解析ツール</button>
       <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
     </aside>
 
@@ -73,33 +63,50 @@
         </div>
         
         <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
+
+        <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
+          
+          <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
+            🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
+          </button>
+          
+          <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
+            
+            <div style="margin-bottom: 15px;">
+              <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
+              <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px;">
+                <option value="base64">Base64 デコーダー</option>
+                <option value="hex">Hex (16進数) デコーダー</option>
+              </select>
+            </div>
+
+            <div id="inline-base64-area">
+              <input type="text" id="tool-base64-input" placeholder="Base64文字列を入力">
+              <button class="exercise-submit-btn" onclick="runBase64()" style="padding: 10px 16px; font-size: 14px;">デコード</button>
+              <br>
+              <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
+              <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
+            </div>
+
+            <div id="inline-hex-area" style="display: none;">
+              <input type="text" id="tool-hex-input" placeholder="例: 48 65 6c 6c 6f">
+              <button class="exercise-submit-btn" onclick="runHex()" style="padding: 10px 16px; font-size: 14px;">デコード</button>
+              <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+          </div>
+        </div>
       </div>
 
       <div id="list-screen" class="page-screen">
         <h1>問題一覧</h1>
         <p>解きたい問題を選択してください。</p>
-        <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
-          </div>
+        <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
       </div>
 
       <div id="tool-screen" class="page-screen">
-        <h1>解析ツール</h1>
-        
-        <div id="tool-section-base64" style="margin-bottom: 40px;">
-          <h3>Base64 デコーダー</h3>
-          <input type="text" id="tool-base64-input" placeholder="デコードしたい文字列">
-          <button onclick="runBase64()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
-          <br>
-          <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
-          <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
-        </div>
-
-        <div id="tool-section-hex">
-          <h3>Hex (16進数) デコーダー</h3>
-          <input type="text" id="tool-hex-input" placeholder="例: 48 65 6c 6c 6f">
-          <button onclick="runHex()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
-          <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
-        </div>
+        <h1>解析ツール独立画面</h1>
+        <p>※左メニューから遷移したとき用の独立ページです。</p>
       </div>
 
       <div id="save-screen" class="page-screen">
@@ -108,7 +115,6 @@
       </div>
 
     </main>
-
   </div>
 
   <script src="script.js"></script>
