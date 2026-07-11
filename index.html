@@ -21,22 +21,10 @@
     <main class="main-content">
       
       <div class="status-container">
-        <div class="status-card">
-          <div class="status-label">レート</div>
-          <div class="status-value"><span id="user-rate">1000</span></div>
-        </div>
-        <div class="status-card">
-          <div class="status-label">正解数</div>
-          <div class="status-value"><span id="user-solved">0</span></div>
-        </div>
-        <div class="status-card">
-          <div class="status-label">挑戦数</div>
-          <div class="status-value"><span id="user-attempts">0</span></div>
-        </div>
-        <div class="status-card">
-          <div class="status-label">正答率</div>
-          <div class="status-value"><span id="user-accuracy">0%</span></div>
-        </div>
+        <div class="status-card"><div class="status-label">レート</div><div class="status-value"><span id="user-rate">1000</span></div></div>
+        <div class="status-card"><div class="status-label">正解数</div><div class="status-value"><span id="user-solved">0</span></div></div>
+        <div class="status-card"><div class="status-label">挑戦数</div><div class="status-value"><span id="user-attempts">0</span></div></div>
+        <div class="status-card"><div class="status-label">正答率</div><div class="status-value"><span id="user-accuracy">0%</span></div></div>
       </div>
       
       <div id="home-screen" class="page-screen active">
@@ -65,35 +53,35 @@
         <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
 
         <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
-          
           <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
             🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
           </button>
           
           <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
-            
             <div style="margin-bottom: 15px;">
               <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
-              <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px;">
+              <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
                 <option value="base64">Base64 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
               </select>
             </div>
 
             <div id="inline-base64-area">
-              <input type="text" id="tool-base64-input" placeholder="Base64文字列を入力">
-              <button class="exercise-submit-btn" onclick="runBase64()" style="padding: 10px 16px; font-size: 14px;">デコード</button>
-              <br>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
+                <button class="exercise-submit-btn" onclick="runBase64()">デコード</button>
+              </div>
               <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
               <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
             </div>
 
             <div id="inline-hex-area" style="display: none;">
-              <input type="text" id="tool-hex-input" placeholder="例: 48 65 6c 6c 6f">
-              <button class="exercise-submit-btn" onclick="runHex()" style="padding: 10px 16px; font-size: 14px;">デコード</button>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
+                <button class="exercise-submit-btn" onclick="runHex()">デコード</button>
+              </div>
               <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
-
           </div>
         </div>
       </div>
@@ -107,20 +95,23 @@
       <div id="tool-screen" class="page-screen">
         <h1>解析ツール</h1>
         
-        <div style="margin-bottom: 40px;">
+        <div class="exercise-card" style="max-width: 600px;">
           <h3>Base64 デコーダー</h3>
-          <input type="text" id="independent-base64-input" placeholder="デコードしたい文字列" style="padding: 8px; font-size: 16px; color: #000;">
-          <button onclick="runIndependentBase64()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
-          <br>
-          <p id="independent-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
-          <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none; border: 2px dashed #334155;">
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="independent-base64-input" class="tool-input" placeholder="デコードしたい文字列">
+            <button onclick="runIndependentBase64()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="independent-base64-result" style="font-weight: bold; margin: 0;"></p>
+          <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
         </div>
 
-        <div>
+        <div class="exercise-card" style="max-width: 600px;">
           <h3>Hex (16進数) デコーダー</h3>
-          <input type="text" id="independent-hex-input" placeholder="例: 48 65 6c 6c 6f" style="padding: 8px; font-size: 16px; color: #000;">
-          <button onclick="runIndependentHex()" style="padding: 8px 16px; font-size: 16px; cursor: pointer; color: #000;">デコード</button>
-          <p id="independent-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="independent-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
+            <button onclick="runIndependentHex()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="independent-hex-result" style="font-weight: bold; margin: 0;"></p>
         </div>
       </div>
 
