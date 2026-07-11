@@ -24,16 +24,14 @@ function showScreen(screenId) {
 }
 
 // ==========================================
-// 解答欄の下の「簡易解析ツール ▽」を開閉する関数
+// 解答欄の下の「簡易解析ツール ▽」を開閉する関数（スマート化）
 // ==========================================
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
   const arrow = document.getElementById('arrow-icon');
   
-  // 0px または 設定されていない場合
   if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
-    // 中身のコンテンツの実際の高さ（px）を動的に指定する
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px"; // 中身の正確な高さを自動計算
     arrow.style.transform = "rotate(180deg)";
   } else {
     dropdown.style.maxHeight = "0px";
@@ -41,7 +39,9 @@ function toggleDropdown() {
   }
 }
 
-// セレクトボックス切り替え時も高さを再計算させる
+// ==========================================
+// セレクトボックスで「Base64」と「Hex」の表示を切り替える関数（スマート化）
+// ==========================================
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const base64Area = document.getElementById('inline-base64-area');
@@ -55,8 +55,8 @@ function switchInlineTool() {
     base64Area.style.display = 'none';
     hexArea.style.display = 'block';
   }
-  
-  // ツールの切り替えで高さが変わるので、開いている時は高さを再帰的に合わせる
+
+  // 表示エリアが変わって高さがズレるのをリアルタイムで再調整する
   if (dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
     dropdown.style.maxHeight = dropdown.scrollHeight + "px";
   }
