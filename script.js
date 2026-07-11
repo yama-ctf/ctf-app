@@ -98,32 +98,44 @@ function updateStatusDOM() {
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 }
 
+
+let isProcessing = false; 
+
 // ==========================================
-// 正解判定
-// ==========================================
-// ==========================================
-// 正解判定（連打・多重送信対策版）
+// 正解判定（正解・不正解どちらの連打も完全ガード版）
 // ==========================================
 function checkAnswer() {
-  // 1. 連打防止のため、送信ボタンを一瞬でクリック不可（無効化）にする
-  //    ※HTML側のクラス名（.exercise-submit-btn）を使ってボタンを特定します
-  const submitBtn = document.querySelector("#play-screen .exercise-submit-btn");
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.style.opacity = "0.5"; // 見た目も半透明にして、押せないことを伝える
-    submitBtn.textContent = "処理中...";
+  // 1. 安全ガード：全問クリア後なら処理しない
+  if (currentQuestion >= questions.length) return;
+
+  // 2. 根本ガード：すでに正解済みの問題なら処理しない
+  let q = questions[currentQuestion];
+  if (q.isCleared) {
+    document.getElementById("result").textContent = "この問題はすでにクリア済みです。";
+    document.getElementById("result").style.color = "#94a3b8";
+    return;
   }
 
+  // 3. 連打ガード：現在「判定アニメーション中/処理中」なら、クリックを完全に無視する
+  if (isProcessing) return;
+
+  // 判定モードに突入（ロックをかける）
+  isProcessing = true;
+
   let userAnswer = document.getElementById("answer").value;
-  let correctAnswer = questions[currentQuestion].answer;
+  let correctAnswer = q.answer;
   let result = document.getElementById("result");
   
+  // ロックがかかった状態で初めて「1回分」としてカウント
   userAttempts++;
 
   if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  
     result.textContent = "正解！";
+    result.style.color = "#00ffcc"; 
+
     userSolved++;
     userRate += 20;
+    q.isCleared = true;
     currentQuestion++;
 
     if (currentQuestion < questions.length) {
@@ -131,28 +143,30 @@ function checkAnswer() {
       document.getElementById("answer").value = "";
     } else {
       document.getElementById("question").textContent = "全問クリア！";
+      document.getElementById("answer").value = "";
     }
+    
+    // 正解時は次の問題に行くので、即座にロックを解除して次の入力を受け付ける
+    isProcessing = false;
+
   } else {
     result.textContent = "不正解";
+    result.style.color = "#ef4444"; 
+    
     if (userRate > 10) {
       userRate -= 10;
     } else {
       userRate = 0;
     }
+
+    // ★不正解のときは、ユーザーが結果（「不正解」の赤文字）を確認して
+    // 次のアクションを起こすまでの間（ここでは1秒間）、ロックを維持する
+    setTimeout(() => {
+      isProcessing = false; 
+    }, 1000); // 1000ミリ秒（1秒）経つまでは、何回連打されても無視！
   }
 
   updateStatusDOM();
-
-  // 2. 判定とスコア更新が終わったら、ボタンを再び押せる状態に戻す（ロック解除）
-  //    ※正解して「全問クリア！」になった場合は、これ以上押せないよう無効のままにします
-  if (submitBtn && currentQuestion < questions.length) {
-    // ほんの一瞬（0.3秒だけ）ウェイトをかけると、より自然で連打を完全に潰せます
-    setTimeout(() => {
-      submitBtn.disabled = false;
-      submitBtn.style.opacity = "1.0";
-      submitBtn.textContent = "送信";
-    }, 300);
-  }
 }
 // ==========================================
 // 【演習画面用】Base64デコード
