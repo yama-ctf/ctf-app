@@ -5,10 +5,11 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: sans-serif;
-  background-color: #0b111e; /* 目標画像と同じ、深みのあるダークネイビー */
-  color: #ffffff;            /* 文字は白 */
-  overflow: hidden;          /* 画面全体の変なスクロールを防ぐ */
+  /* 游ゴシックやSF Proなど、モダンなOS標準のゴシック体＆等幅のブレンド */
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Yu Gothic", sans-serif;
+  background-color: #0b111e;
+  color: #ffffff;
+  overflow: hidden;
 }
 
 /* 画面を綺麗に「横並び」にする魔法 */
