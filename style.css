@@ -219,6 +219,29 @@ html, body {
 .exercise-submit-btn:hover {
   background-color: #1d4ed8;
 }
+/* 演習画面内のセレクトボックスをサイバー風に */
+#inline-tool-selector {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px;
+  background-color: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #ffffff;
+  outline: none;
+}
+
+/* 演習画面内の入力欄（Base64/Hex）の幅を解答欄と揃える */
+#inline-base64-area input, #inline-hex-area input {
+  width: 100%;
+  max-width: 380px; /* ボタンと合わせて解答欄と横幅を揃える */
+  padding: 12px;
+  background-color: #111827;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #ffffff;
+  margin-right: 10px;
+}
 
 
 /* ==========================================
