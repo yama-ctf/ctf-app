@@ -99,10 +99,11 @@ function updateStatusDOM() {
 }
 
 
-let isProcessing = false; 
+// スクリプトの上のほう（currentQuestionなどの近く）にこれを追加
+let lastSubmittedAnswer = ""; 
 
 // ==========================================
-// 正解判定（正解・不正解どちらの連打も完全ガード版）
+// 正解判定（同じ回答の連打を完全に無効化する決定版）
 // ==========================================
 function checkAnswer() {
   // 1. 安全ガード：全問クリア後なら処理しない
@@ -116,17 +117,22 @@ function checkAnswer() {
     return;
   }
 
-  // 3. 連打ガード：現在「判定アニメーション中/処理中」なら、クリックを完全に無視する
-  if (isProcessing) return;
+  let userAnswer = document.getElementById("answer").value.trim();
 
-  // 判定モードに突入（ロックをかける）
-  isProcessing = true;
+  // 【ここが根本対策】
+  // 前回の送信ボタンを押した時と「全く同じ文字」のまま連打されたら、処理をここで完全に終了する
+  if (userAnswer === lastSubmittedAnswer) {
+    // 画面の文字が変わるわけでもないので、ステータスもペナルティも一切何もさせない
+    return; 
+  }
 
-  let userAnswer = document.getElementById("answer").value;
+  // 今回送信した文字を「前回の回答」として記憶する
+  lastSubmittedAnswer = userAnswer;
+
   let correctAnswer = q.answer;
   let result = document.getElementById("result");
   
-  // ロックがかかった状態で初めて「1回分」としてカウント
+  // 新しい回答での挑戦なので、ここで初めてカウント
   userAttempts++;
 
   if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  
@@ -138,6 +144,9 @@ function checkAnswer() {
     q.isCleared = true;
     currentQuestion++;
 
+    // 次の問題に進むので、前回の回答の記憶をリセット
+    lastSubmittedAnswer = "";
+
     if (currentQuestion < questions.length) {
       showQuestion();
       document.getElementById("answer").value = "";
@@ -145,10 +154,6 @@ function checkAnswer() {
       document.getElementById("question").textContent = "全問クリア！";
       document.getElementById("answer").value = "";
     }
-    
-    // 正解時は次の問題に行くので、即座にロックを解除して次の入力を受け付ける
-    isProcessing = false;
-
   } else {
     result.textContent = "不正解";
     result.style.color = "#ef4444"; 
@@ -158,15 +163,27 @@ function checkAnswer() {
     } else {
       userRate = 0;
     }
-
-    // ★不正解のときは、ユーザーが結果（「不正解」の赤文字）を確認して
-    // 次のアクションを起こすまでの間（ここでは1秒間）、ロックを維持する
-    setTimeout(() => {
-      isProcessing = false; 
-    }, 1000); // 1000ミリ秒（1秒）経つまでは、何回連打されても無視！
+    
+    // 不正解のときは、ユーザーが文字を書き換えるまで
+    // lastSubmittedAnswer に値が残るため、送信ボタンを連打してもこれ以上何も起きない
   }
 
   updateStatusDOM();
+}
+
+// ==========================================
+// 一覧から問題を選択（ここにもリセットを追加）
+// ==========================================
+function selectQuestion(index) {
+  currentQuestion = index; 
+  showQuestion();          
+  document.getElementById("result").textContent = "";
+  document.getElementById("answer").value = "";
+  
+  // 別の問題に切り替えたら、連打防止用の記憶もリセットする
+  lastSubmittedAnswer = ""; 
+  
+  showScreen("play-screen"); 
 }
 // ==========================================
 // 【演習画面用】Base64デコード
