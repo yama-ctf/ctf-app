@@ -101,7 +101,19 @@ function updateStatusDOM() {
 // ==========================================
 // 正解判定
 // ==========================================
+// ==========================================
+// 正解判定（連打・多重送信対策版）
+// ==========================================
 function checkAnswer() {
+  // 1. 連打防止のため、送信ボタンを一瞬でクリック不可（無効化）にする
+  //    ※HTML側のクラス名（.exercise-submit-btn）を使ってボタンを特定します
+  const submitBtn = document.querySelector("#play-screen .exercise-submit-btn");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = "0.5"; // 見た目も半透明にして、押せないことを伝える
+    submitBtn.textContent = "処理中...";
+  }
+
   let userAnswer = document.getElementById("answer").value;
   let correctAnswer = questions[currentQuestion].answer;
   let result = document.getElementById("result");
@@ -128,9 +140,20 @@ function checkAnswer() {
       userRate = 0;
     }
   }
-  updateStatusDOM();
-}
 
+  updateStatusDOM();
+
+  // 2. 判定とスコア更新が終わったら、ボタンを再び押せる状態に戻す（ロック解除）
+  //    ※正解して「全問クリア！」になった場合は、これ以上押せないよう無効のままにします
+  if (submitBtn && currentQuestion < questions.length) {
+    // ほんの一瞬（0.3秒だけ）ウェイトをかけると、より自然で連打を完全に潰せます
+    setTimeout(() => {
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = "1.0";
+      submitBtn.textContent = "送信";
+    }, 300);
+  }
+}
 // ==========================================
 // 【演習画面用】Base64デコード
 // ==========================================
