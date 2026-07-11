@@ -30,8 +30,10 @@ function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
   const arrow = document.getElementById('arrow-icon');
   
+  // 0px または 設定されていない場合
   if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = "500px";
+    // 中身のコンテンツの実際の高さ（px）を動的に指定する
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
     arrow.style.transform = "rotate(180deg)";
   } else {
     dropdown.style.maxHeight = "0px";
@@ -39,13 +41,12 @@ function toggleDropdown() {
   }
 }
 
-// ==========================================
-// セレクトボックスで「Base64」と「Hex」の表示を切り替える関数
-// ==========================================
+// セレクトボックス切り替え時も高さを再計算させる
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const base64Area = document.getElementById('inline-base64-area');
   const hexArea = document.getElementById('inline-hex-area');
+  const dropdown = document.getElementById('tools-dropdown');
   
   if (selected === 'base64') {
     base64Area.style.display = 'block';
@@ -53,6 +54,11 @@ function switchInlineTool() {
   } else {
     base64Area.style.display = 'none';
     hexArea.style.display = 'block';
+  }
+  
+  // ツールの切り替えで高さが変わるので、開いている時は高さを再帰的に合わせる
+  if (dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
   }
 }
 
