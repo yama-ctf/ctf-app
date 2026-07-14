@@ -103,13 +103,11 @@ function updateStatusDOM() {
 let lastSubmittedAnswer = ""; 
 
 // ==========================================
-// 正解判定（同じ回答の連打を完全に無効化する決定版）
+// 正解判定（Eloレーティング ＆ 連打対策版）
 // ==========================================
 function checkAnswer() {
-  // 1. 安全ガード：全問クリア後なら処理しない
   if (currentQuestion >= questions.length) return;
 
-  // 2. 根本ガード：すでに正解済みの問題なら処理しない
   let q = questions[currentQuestion];
   if (q.isCleared) {
     document.getElementById("result").textContent = "この問題はすでにクリア済みです。";
@@ -119,32 +117,43 @@ function checkAnswer() {
 
   let userAnswer = document.getElementById("answer").value.trim();
 
-  // 【ここが根本対策】
-  // 前回の送信ボタンを押した時と「全く同じ文字」のまま連打されたら、処理をここで完全に終了する
+  // 重複送信チェック
   if (userAnswer === lastSubmittedAnswer) {
-    // 画面の文字が変わるわけでもないので、ステータスもペナルティも一切何もさせない
     return; 
   }
-
-  // 今回送信した文字を「前回の回答」として記憶する
   lastSubmittedAnswer = userAnswer;
 
   let correctAnswer = q.answer;
   let result = document.getElementById("result");
   
-  // 新しい回答での挑戦なので、ここで初めてカウント
   userAttempts++;
+
+  // ──────────────────────────────────────────
+  // 【Eloレーティング計算の準備】
+  // ──────────────────────────────────────────
+  // 問題のレート値（jsonにない場合はデフォルト1200とする）
+  const rProblem = q.difficultyRate || 1200; 
+  const rUser = userRate;
+  const K = 32; // 変動幅の係数（K-factor）
+
+  // 1. ユーザーがこの問題を解ける「期待値（勝率）」を計算
+  const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
+  let rateChange = 0;
 
   if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  
     result.textContent = "正解！";
     result.style.color = "#00ffcc"; 
 
     userSolved++;
-    userRate += 20;
     q.isCleared = true;
-    currentQuestion++;
 
-    // 次の問題に進むので、前回の回答の記憶をリセット
+    // 2. 正解したときのレート変動量（期待値が低いほど、勝ったとき大きく増える）
+    rateChange = Math.round(K * (1 - expectedScore));
+    // 最低でも+2はされるように安全策
+    if (rateChange < 2) rateChange = 2; 
+
+    userRate += rateChange;
+    currentQuestion++;
     lastSubmittedAnswer = "";
 
     if (currentQuestion < questions.length) {
@@ -158,32 +167,21 @@ function checkAnswer() {
     result.textContent = "不正解";
     result.style.color = "#ef4444"; 
     
-    if (userRate > 10) {
-      userRate -= 10;
-    } else {
+    // 3. 不正解（負け）のときのレート変動量（期待値が高い格下に負けるほど、大きく減る）
+    rateChange = Math.round(K * (0 - expectedScore));
+    // 最大でもペナルティは-15までに抑えるなどのマイルド調整（お好みで）
+    if (rateChange > -2) rateChange = -2; 
+
+    userRate += rateChange; // rateChangeはマイナスの値が入る
+
+    // レートが0未満にならないようにするガード
+    if (userRate < 0) {
       userRate = 0;
     }
-    
-    // 不正解のときは、ユーザーが文字を書き換えるまで
-    // lastSubmittedAnswer に値が残るため、送信ボタンを連打してもこれ以上何も起きない
   }
 
+  // 最新のステータスを画面に反映
   updateStatusDOM();
-}
-
-// ==========================================
-// 一覧から問題を選択（ここにもリセットを追加）
-// ==========================================
-function selectQuestion(index) {
-  currentQuestion = index; 
-  showQuestion();          
-  document.getElementById("result").textContent = "";
-  document.getElementById("answer").value = "";
-  
-  // 別の問題に切り替えたら、連打防止用の記憶もリセットする
-  lastSubmittedAnswer = ""; 
-  
-  showScreen("play-screen"); 
 }
 // ==========================================
 // 【演習画面用】Base64デコード
