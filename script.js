@@ -163,23 +163,27 @@ function checkAnswer() {
       document.getElementById("question").textContent = "全問クリア！";
       document.getElementById("answer").value = "";
     }
-  } else {
+ } else {
     result.textContent = "不正解";
     result.style.color = "#ef4444"; 
     
-    // 3. 不正解（負け）のときのレート変動量（期待値が高い格下に負けるほど、大きく減る）
+    // 3. 不正解（負け）のときのレート変動量
+    // 期待値（勝てる確率）が高い格下に負けるほど、100%に近いペナルティがそのまま適用されます
     rateChange = Math.round(K * (0 - expectedScore));
-    // 最大でもペナルティは-15までに抑えるなどのマイルド調整（お好みで）
+
+    // 【修正箇所】
+    // 無駄なリミッター（上限カット）をすべて撤去！
+    // ただし、計算上 rateChange が 0（あるいはプラス）になってしまうバグを防ぐため、
+    // 最低でも「-2」は減るという安全ガードだけ残します
     if (rateChange > -2) rateChange = -2; 
 
-    userRate += rateChange; // rateChangeはマイナスの値が入る
+    userRate += rateChange; // rateChange（マイナスの値）をそのまま加算して減らす
 
     // レートが0未満にならないようにするガード
     if (userRate < 0) {
       userRate = 0;
     }
   }
-
   // 最新のステータスを画面に反映
   updateStatusDOM();
 }
