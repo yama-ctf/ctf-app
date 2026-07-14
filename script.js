@@ -132,7 +132,8 @@ function checkAnswer() {
   // 【Eloレーティング計算の準備】
   // ──────────────────────────────────────────
   // 問題のレート値（jsonにない場合はデフォルト1200とする）
-  const rProblem = q.difficulty || 1200; 
+// Number() を使って、JSONから読み込んだ値を確実に「数値」に変換します
+　const rProblem = Number(q.difficulty) || 1200;
   const rUser = userRate;
   const K = 32; // 変動幅の係数（K-factor）
 
