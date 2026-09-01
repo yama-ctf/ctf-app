@@ -1,16 +1,16 @@
+// ==========================================
+// 1. 共通・システム管理（画面制御・ステータス・問題処理）
+// ==========================================
+
 let questions = [];
 let currentQuestion = 0;
 
-// ==========================================
-// ステータスを記録するための変数
-// ==========================================
 let userRate = 1000;   
 let userSolved = 0;    
 let userAttempts = 0;  
+let lastSubmittedAnswer = ""; 
 
-// ==========================================
-// 画面切り替え関数
-// ==========================================
+// 画面切り替え
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
   screens.forEach(screen => {
@@ -23,48 +23,7 @@ function showScreen(screenId) {
   }
 }
 
-// ==========================================
-// 解答欄の下の「簡易解析ツール ▽」を開閉する関数（スマート化）
-// ==========================================
-function toggleDropdown() {
-  const dropdown = document.getElementById('tools-dropdown');
-  const arrow = document.getElementById('arrow-icon');
-  
-  if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px"; // 中身の正確な高さを自動計算
-    arrow.style.transform = "rotate(180deg)";
-  } else {
-    dropdown.style.maxHeight = "0px";
-    arrow.style.transform = "rotate(0deg)";
-  }
-}
-
-// ==========================================
-// セレクトボックスで「Base64」と「Hex」の表示を切り替える関数（スマート化）
-// ==========================================
-function switchInlineTool() {
-  const selected = document.getElementById('inline-tool-selector').value;
-  const base64Area = document.getElementById('inline-base64-area');
-  const hexArea = document.getElementById('inline-hex-area');
-  const dropdown = document.getElementById('tools-dropdown');
-  
-  if (selected === 'base64') {
-    base64Area.style.display = 'block';
-    hexArea.style.display = 'none';
-  } else {
-    base64Area.style.display = 'none';
-    hexArea.style.display = 'block';
-  }
-
-  // 表示エリアが変わって高さがズレるのをリアルタイムで再調整する
-  if (dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-  }
-}
-
-// ==========================================
-// JSON読み込み
-// ==========================================
+// JSONデータ読み込み
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
@@ -73,9 +32,7 @@ fetch("questions.json")
     createQuestionList();  
   });
 
-// ==========================================
-// 問題表示関数
-// ==========================================
+// 問題表示
 function showQuestion() {
   if (questions.length === 0) return; 
   let q = questions[currentQuestion];
@@ -83,9 +40,7 @@ function showQuestion() {
   document.getElementById("question").textContent = q.question;
 }
 
-// ==========================================
-// 上部のステータス画面を最新データに書き換える関数
-// ==========================================
+// ステータス更新
 function updateStatusDOM() {
   document.getElementById("user-rate").textContent = userRate;
   document.getElementById("user-solved").textContent = userSolved;
@@ -98,13 +53,7 @@ function updateStatusDOM() {
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 }
 
-
-// スクリプトの上のほう（currentQuestionなどの近く）にこれを追加
-let lastSubmittedAnswer = ""; 
-
-// ==========================================
-// 正解判定（Eloレーティング ＆ 連打対策版）
-// ==========================================
+// 解答判定 (Eloレーティング)
 function checkAnswer() {
   if (currentQuestion >= questions.length) return;
 
@@ -117,10 +66,7 @@ function checkAnswer() {
 
   let userAnswer = document.getElementById("answer").value.trim();
 
-  // 重複送信チェック
-  if (userAnswer === lastSubmittedAnswer) {
-    return; 
-  }
+  if (userAnswer === lastSubmittedAnswer) return; 
   lastSubmittedAnswer = userAnswer;
 
   let correctAnswer = q.answer;
@@ -128,16 +74,10 @@ function checkAnswer() {
   
   userAttempts++;
 
-  // ──────────────────────────────────────────
-  // 【Eloレーティング計算の準備】
-  // ──────────────────────────────────────────
-  // 問題のレート値（jsonにない場合はデフォルト1200とする）
-// Number() を使って、JSONから読み込んだ値を確実に「数値」に変換します
-　const rProblem = Number(q.difficulty) || 1200;
+  const rProblem = Number(q.difficulty) || 1200;
   const rUser = userRate;
-  const K = 32; // 変動幅の係数（K-factor）
+  const K = 32; 
 
-  // 1. ユーザーがこの問題を解ける「期待値（勝率）」を計算
   const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
   let rateChange = 0;
 
@@ -148,9 +88,7 @@ function checkAnswer() {
     userSolved++;
     q.isCleared = true;
 
-    // 2. 正解したときのレート変動量（期待値が低いほど、勝ったとき大きく増える）
     rateChange = Math.round(K * (1 - expectedScore));
-    // 最低でも+2はされるように安全策
     if (rateChange < 2) rateChange = 2; 
 
     userRate += rateChange;
@@ -164,45 +102,177 @@ function checkAnswer() {
       document.getElementById("question").textContent = "全問クリア！";
       document.getElementById("answer").value = "";
     }
- } else {
+  } else {
     result.textContent = "不正解";
     result.style.color = "#ef4444"; 
     
-    // 3. 不正解（負け）のときのレート変動量
-    // 期待値（勝てる確率）が高い格下に負けるほど、100%に近いペナルティがそのまま適用されます
     rateChange = Math.round(K * (0 - expectedScore));
-
-    // 【修正箇所】
-    // 無駄なリミッター（上限カット）をすべて撤去！
-    // ただし、計算上 rateChange が 0（あるいはプラス）になってしまうバグを防ぐため、
-    // 最低でも「-2」は減るという安全ガードだけ残します
     if (rateChange > -2) rateChange = -2; 
 
-    userRate += rateChange; // rateChange（マイナスの値）をそのまま加算して減らす
-
-    // レートが0未満にならないようにするガード
-    if (userRate < 0) {
-      userRate = 0;
-    }
+    userRate += rateChange; 
+    if (userRate < 0) userRate = 0;
   }
-  // 最新のステータスを画面に反映
   updateStatusDOM();
 }
+
+// 問題一覧生成
+function createQuestionList() {
+  const listContainer = document.getElementById("question-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = ""; 
+
+  questions.forEach((q, index) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn"; 
+    btn.style.backgroundColor = "#1e293b";
+    btn.style.border = "1px solid #334155";
+    btn.style.margin = "0"; 
+    
+    btn.innerHTML = `
+      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
+      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
+    `;
+
+    btn.onclick = function() { selectQuestion(index); };
+    listContainer.appendChild(btn);
+  });
+}
+
+// 問題選択
+function selectQuestion(index) {
+  currentQuestion = index; 
+  showQuestion();          
+  document.getElementById("result").textContent = "";
+  document.getElementById("answer").value = "";
+  showScreen("play-screen"); 
+}
+
+
 // ==========================================
-// 【演習画面用】Base64デコード
+// 2. 【演習画面用】簡易解析ツールUI & 実行関数
 // ==========================================
+
+// ドロップダウンの開閉
+function toggleDropdown() {
+  const dropdown = document.getElementById('tools-dropdown');
+  const arrow = document.getElementById('arrow-icon');
+  
+  if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+    arrow.style.transform = "rotate(180deg)";
+  } else {
+    dropdown.style.maxHeight = "0px";
+    arrow.style.transform = "rotate(0deg)";
+  }
+}
+
+// セレクトボックスでの表示ツール切り替え
+function switchInlineTool() {
+  const selected = document.getElementById('inline-tool-selector').value;
+  const areas = {
+    base64: document.getElementById('inline-base64-area'),
+    hex: document.getElementById('inline-hex-area'),
+    caesar: document.getElementById('inline-caesar-area'),
+    atbash: document.getElementById('inline-atbash-area')
+  };
+  const dropdown = document.getElementById('tools-dropdown');
+
+  for (const key in areas) {
+    if (areas[key]) {
+      areas[key].style.display = (key === selected) ? 'block' : 'none';
+    }
+  }
+
+  if (dropdown && dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+  }
+}
+
+// 演習画面用デコード実行関数群
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
 
+function runHex() {
+  decodeHexLogic('tool-hex-input', 'tool-hex-result');
+}
+
+function runInlineCaesar() {
+  const input = document.getElementById("inline-caesar-input").value;
+  const shiftSelect = document.getElementById("inline-caesar-shift");
+  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+  const resultEl = document.getElementById("inline-caesar-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+function runInlineAtbash() {
+  const input = document.getElementById("inline-atbash-input").value;
+  const resultEl = document.getElementById("inline-atbash-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+
 // ==========================================
-// 【独立画面用】Base64デコード
+// 3. 【解析ツール独立画面用】実行関数
 // ==========================================
+
 function runIndependentBase64() {
   decodeBase64Logic('independent-base64-input', 'independent-base64-result', 'independent-base64-img');
 }
 
-// Base64処理の共通化
+function runIndependentHex() {
+  decodeHexLogic('independent-hex-input', 'independent-hex-result');
+}
+
+function runCaesar() {
+  const input = document.getElementById("tool-caesar-input").value;
+  const shiftSelect = document.getElementById("tool-caesar-shift");
+  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+  const resultEl = document.getElementById("tool-caesar-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+function runAtbash() {
+  const input = document.getElementById("tool-atbash-input").value;
+  const resultEl = document.getElementById("tool-atbash-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+
+// ==========================================
+// 4. 変換・デコード共通ロジック
+// ==========================================
+
+// 画面読み込み時にシーザー暗号のシフト数（1〜25）プルダウンを全画面分一括生成
+window.addEventListener("DOMContentLoaded", () => {
+  const selects = [
+    document.getElementById("tool-caesar-shift"),
+    document.getElementById("inline-caesar-shift")
+  ];
+
+  selects.forEach(select => {
+    if (select) {
+      select.innerHTML = "";
+      for (let i = 1; i <= 25; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${i}文字戻す`;
+        if (i === 13) opt.textContent += " (ROT13)";
+        select.appendChild(opt);
+      }
+    }
+  });
+});
+
+// Base64 共通処理
 function decodeBase64Logic(inputId, resultId, imgId) {
   let input = document.getElementById(inputId).value.trim();
   const resultText = document.getElementById(resultId);
@@ -244,21 +314,7 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   }
 }
 
-// ==========================================
-// 【演習画面用】Hexデコード
-// ==========================================
-function runHex() {
-  decodeHexLogic('tool-hex-input', 'tool-hex-result');
-}
-
-// ==========================================
-// 【独立画面用】Hexデコード
-// ==========================================
-function runIndependentHex() {
-  decodeHexLogic('independent-hex-input', 'independent-hex-result');
-}
-
-// Hex処理の共通化
+// Hex 共通処理
 function decodeHexLogic(inputId, resultId) {
   const input = document.getElementById(inputId).value.trim();
   try {
@@ -271,136 +327,40 @@ function decodeHexLogic(inputId, resultId) {
     showResult(resultId, 'デコード失敗', true);
   }
 }
-// ==========================================
-// シーザー暗号 (Caesar Cipher) 処理
-// ==========================================
 
-// ドキュメント読み込み完了時に、シーザー暗号のシフト数（1〜25）プルダウンを自動生成
-window.addEventListener("DOMContentLoaded", () => {
-  const select = document.getElementById("tool-caesar-shift");
-  if (select) {
-    select.innerHTML = ""; // 初期化
-    for (let i = 1; i <= 25; i++) {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `${i}文字戻す`;
-      if (i === 13) opt.textContent += " (ROT13)";
-      select.appendChild(opt);
-    }
-  }
-});
-
-function runCaesar() {
-  const input = document.getElementById("tool-caesar-input").value;
-  const shiftSelect = document.getElementById("tool-caesar-shift");
-  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
-  const resultEl = document.getElementById("tool-caesar-result");
-
-  if (!input) {
-    resultEl.textContent = "文字列を入力してください";
-    resultEl.style.color = "#ef4444";
-    return;
-  }
-
-  // アルファベットを shift 分戻す処理（記号や数字は保持）
-  const decoded = input.replace(/[a-zA-Z]/g, (char) => {
+// Caesar 共通変換処理
+function decodeCaesarLogic(input, shift) {
+  return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
-    // 大文字 (A=65, Z=90)
     if (code >= 65 && code <= 90) {
       return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
     }
-    // 小文字 (a=97, z=122)
     if (code >= 97 && code <= 122) {
       return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
     }
     return char;
   });
-
-  resultEl.textContent = `結果: ${decoded}`;
-  resultEl.style.color = "#00ffcc";
 }
 
-// ==========================================
-// アトバシュ暗号 (Atbash Cipher) 処理
-// ==========================================
-
-function runAtbash() {
-  const input = document.getElementById("tool-atbash-input").value;
-  const resultEl = document.getElementById("tool-atbash-result");
-
-  if (!input) {
-    resultEl.textContent = "文字列を入力してください";
-    resultEl.style.color = "#ef4444";
-    return;
-  }
-
-  // A<->Z, B<->Y, a<->z 反転処理（記号や数字は保持）
-  const decoded = input.replace(/[a-zA-Z]/g, (char) => {
+// Atbash 共通変換処理
+function decodeAtbashLogic(input) {
+  return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
-    // 大文字 (65 + 90 = 155)
     if (code >= 65 && code <= 90) {
       return String.fromCharCode(155 - code);
     }
-    // 小文字 (97 + 122 = 219)
     if (code >= 97 && code <= 122) {
       return String.fromCharCode(219 - code);
     }
     return char;
   });
-
-  resultEl.textContent = `結果: ${decoded}`;
-  resultEl.style.color = "#00ffcc";
 }
 
-// ==========================================
-// 結果表示関数
-// ==========================================
+// 共通結果表示関数
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
     resultElement.textContent = message;
-    if (isError) {
-      resultElement.style.color = "#ef4444"; 
-    } else {
-      resultElement.style.color = "#00ffcc"; 
-    }
+    resultElement.style.color = isError ? "#ef4444" : "#00ffcc";
   }
-}
-
-// ==========================================
-// 問題一覧の自動生成
-// ==========================================
-function createQuestionList() {
-  const listContainer = document.getElementById("question-list");
-  if (!listContainer) return;
-  listContainer.innerHTML = ""; 
-
-  questions.forEach((q, index) => {
-    const btn = document.createElement("button");
-    btn.className = "nav-btn"; 
-    btn.style.backgroundColor = "#1e293b";
-    btn.style.border = "1px solid #334155";
-    btn.style.margin = "0"; 
-    
-    btn.innerHTML = `
-      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
-      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
-    `;
-
-    btn.onclick = function() {
-      selectQuestion(index);
-    };
-    listContainer.appendChild(btn);
-  });
-}
-
-// ==========================================
-// 一覧から問題を選択
-// ==========================================
-function selectQuestion(index) {
-  currentQuestion = index; 
-  showQuestion();          
-  document.getElementById("result").textContent = "";
-  document.getElementById("answer").value = "";
-  showScreen("play-screen"); 
 }
