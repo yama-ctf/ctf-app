@@ -1,16 +1,17 @@
-// ==========================================
-// 1. 共通・システム管理（画面制御・ステータス・問題処理）
-// ==========================================
-
 let questions = [];
 let currentQuestion = 0;
 
+// ==========================================
+// ステータスを記録するための変数
+// ==========================================
 let userRate = 1000;   
 let userSolved = 0;    
 let userAttempts = 0;  
 let lastSubmittedAnswer = ""; 
 
-// 画面切り替え
+// ==========================================
+// 画面切り替え関数
+// ==========================================
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
   screens.forEach(screen => {
@@ -23,7 +24,49 @@ function showScreen(screenId) {
   }
 }
 
-// JSONデータ読み込み
+// ==========================================
+// 解答欄の下の「簡易解析ツール ▽」を開閉する関数
+// ==========================================
+function toggleDropdown() {
+  const dropdown = document.getElementById('tools-dropdown');
+  const arrow = document.getElementById('arrow-icon');
+  
+  if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+    arrow.style.transform = "rotate(180deg)";
+  } else {
+    dropdown.style.maxHeight = "0px";
+    arrow.style.transform = "rotate(0deg)";
+  }
+}
+
+// ==========================================
+// 簡易解析ツールの切り替え関数 (Caesar / Atbash 対応版)
+// ==========================================
+function switchInlineTool() {
+  const selected = document.getElementById('inline-tool-selector').value;
+  const areas = {
+    base64: document.getElementById('inline-base64-area'),
+    hex: document.getElementById('inline-hex-area'),
+    caesar: document.getElementById('inline-caesar-area'),
+    atbash: document.getElementById('inline-atbash-area')
+  };
+  const dropdown = document.getElementById('tools-dropdown');
+
+  for (const key in areas) {
+    if (areas[key]) {
+      areas[key].style.display = (key === selected) ? 'block' : 'none';
+    }
+  }
+
+  if (dropdown && dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+  }
+}
+
+// ==========================================
+// JSON読み込み
+// ==========================================
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
@@ -32,7 +75,9 @@ fetch("questions.json")
     createQuestionList();  
   });
 
-// 問題表示
+// ==========================================
+// 問題表示関数
+// ==========================================
 function showQuestion() {
   if (questions.length === 0) return; 
   let q = questions[currentQuestion];
@@ -40,7 +85,9 @@ function showQuestion() {
   document.getElementById("question").textContent = q.question;
 }
 
-// ステータス更新
+// ==========================================
+// 上部のステータス画面を最新データに書き換える関数
+// ==========================================
 function updateStatusDOM() {
   document.getElementById("user-rate").textContent = userRate;
   document.getElementById("user-solved").textContent = userSolved;
@@ -53,7 +100,9 @@ function updateStatusDOM() {
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 }
 
-// 解答判定 (Eloレーティング)
+// ==========================================
+// 正解判定（Eloレーティング ＆ 連打対策版）
+// ==========================================
 function checkAnswer() {
   if (currentQuestion >= questions.length) return;
 
@@ -66,7 +115,10 @@ function checkAnswer() {
 
   let userAnswer = document.getElementById("answer").value.trim();
 
-  if (userAnswer === lastSubmittedAnswer) return; 
+  // 重複送信チェック
+  if (userAnswer === lastSubmittedAnswer) {
+    return; 
+  }
   lastSubmittedAnswer = userAnswer;
 
   let correctAnswer = q.answer;
@@ -110,169 +162,25 @@ function checkAnswer() {
     if (rateChange > -2) rateChange = -2; 
 
     userRate += rateChange; 
-    if (userRate < 0) userRate = 0;
+
+    if (userRate < 0) {
+      userRate = 0;
+    }
   }
   updateStatusDOM();
 }
 
-// 問題一覧生成
-function createQuestionList() {
-  const listContainer = document.getElementById("question-list");
-  if (!listContainer) return;
-  listContainer.innerHTML = ""; 
-
-  questions.forEach((q, index) => {
-    const btn = document.createElement("button");
-    btn.className = "nav-btn"; 
-    btn.style.backgroundColor = "#1e293b";
-    btn.style.border = "1px solid #334155";
-    btn.style.margin = "0"; 
-    
-    btn.innerHTML = `
-      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
-      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
-    `;
-
-    btn.onclick = function() { selectQuestion(index); };
-    listContainer.appendChild(btn);
-  });
-}
-
-// 問題選択
-function selectQuestion(index) {
-  currentQuestion = index; 
-  showQuestion();          
-  document.getElementById("result").textContent = "";
-  document.getElementById("answer").value = "";
-  showScreen("play-screen"); 
-}
-
-
 // ==========================================
-// 2. 【演習画面用】簡易解析ツールUI & 実行関数
+// Base64 デコード処理
 // ==========================================
-
-// ドロップダウンの開閉
-function toggleDropdown() {
-  const dropdown = document.getElementById('tools-dropdown');
-  const arrow = document.getElementById('arrow-icon');
-  
-  if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-    arrow.style.transform = "rotate(180deg)";
-  } else {
-    dropdown.style.maxHeight = "0px";
-    arrow.style.transform = "rotate(0deg)";
-  }
-}
-
-// セレクトボックスでの表示ツール切り替え
-function switchInlineTool() {
-  const selected = document.getElementById('inline-tool-selector').value;
-  const areas = {
-    base64: document.getElementById('inline-base64-area'),
-    hex: document.getElementById('inline-hex-area'),
-    caesar: document.getElementById('inline-caesar-area'),
-    atbash: document.getElementById('inline-atbash-area')
-  };
-  const dropdown = document.getElementById('tools-dropdown');
-
-  for (const key in areas) {
-    if (areas[key]) {
-      areas[key].style.display = (key === selected) ? 'block' : 'none';
-    }
-  }
-
-  if (dropdown && dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-  }
-}
-
-// 演習画面用デコード実行関数群
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
-
-function runHex() {
-  decodeHexLogic('tool-hex-input', 'tool-hex-result');
-}
-
-function runInlineCaesar() {
-  const input = document.getElementById("inline-caesar-input").value;
-  const shiftSelect = document.getElementById("inline-caesar-shift");
-  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
-  const resultEl = document.getElementById("inline-caesar-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-function runInlineAtbash() {
-  const input = document.getElementById("inline-atbash-input").value;
-  const resultEl = document.getElementById("inline-atbash-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-
-// ==========================================
-// 3. 【解析ツール独立画面用】実行関数
-// ==========================================
 
 function runIndependentBase64() {
   decodeBase64Logic('independent-base64-input', 'independent-base64-result', 'independent-base64-img');
 }
 
-function runIndependentHex() {
-  decodeHexLogic('independent-hex-input', 'independent-hex-result');
-}
-
-function runCaesar() {
-  const input = document.getElementById("tool-caesar-input").value;
-  const shiftSelect = document.getElementById("tool-caesar-shift");
-  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
-  const resultEl = document.getElementById("tool-caesar-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-function runAtbash() {
-  const input = document.getElementById("tool-atbash-input").value;
-  const resultEl = document.getElementById("tool-atbash-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-
-// ==========================================
-// 4. 変換・デコード共通ロジック
-// ==========================================
-
-// 画面読み込み時にシーザー暗号のシフト数（1〜25）プルダウンを全画面分一括生成
-window.addEventListener("DOMContentLoaded", () => {
-  const selects = [
-    document.getElementById("tool-caesar-shift"),
-    document.getElementById("inline-caesar-shift")
-  ];
-
-  selects.forEach(select => {
-    if (select) {
-      select.innerHTML = "";
-      for (let i = 1; i <= 25; i++) {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `${i}文字戻す`;
-        if (i === 13) opt.textContent += " (ROT13)";
-        select.appendChild(opt);
-      }
-    }
-  });
-});
-
-// Base64 共通処理
 function decodeBase64Logic(inputId, resultId, imgId) {
   let input = document.getElementById(inputId).value.trim();
   const resultText = document.getElementById(resultId);
@@ -314,7 +222,17 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   }
 }
 
-// Hex 共通処理
+// ==========================================
+// Hex デコード処理
+// ==========================================
+function runHex() {
+  decodeHexLogic('tool-hex-input', 'tool-hex-result');
+}
+
+function runIndependentHex() {
+  decodeHexLogic('independent-hex-input', 'independent-hex-result');
+}
+
 function decodeHexLogic(inputId, resultId) {
   const input = document.getElementById(inputId).value.trim();
   try {
@@ -328,7 +246,72 @@ function decodeHexLogic(inputId, resultId) {
   }
 }
 
-// Caesar 共通変換処理
+// ==========================================
+// シーザー ＆ アトバシュ 実行・ロジック処理
+// ==========================================
+
+// ドキュメント読み込み時にシフト数（1〜25）プルダウンを全画面分生成
+window.addEventListener("DOMContentLoaded", () => {
+  const selects = [
+    document.getElementById("tool-caesar-shift"),
+    document.getElementById("inline-caesar-shift")
+  ];
+
+  selects.forEach(select => {
+    if (select) {
+      select.innerHTML = "";
+      for (let i = 1; i <= 25; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `${i}文字戻す`;
+        if (i === 13) opt.textContent += " (ROT13)";
+        select.appendChild(opt);
+      }
+    }
+  });
+});
+
+// 【独立画面用】 Caesar デコード
+function runCaesar() {
+  const input = document.getElementById("tool-caesar-input").value;
+  const shiftSelect = document.getElementById("tool-caesar-shift");
+  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+  const resultEl = document.getElementById("tool-caesar-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+// 【演習画面用】 Caesar デコード
+function runInlineCaesar() {
+  const input = document.getElementById("inline-caesar-input").value;
+  const shiftSelect = document.getElementById("inline-caesar-shift");
+  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+  const resultEl = document.getElementById("inline-caesar-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+// 【独立画面用】 Atbash デコード
+function runAtbash() {
+  const input = document.getElementById("tool-atbash-input").value;
+  const resultEl = document.getElementById("tool-atbash-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+// 【演習画面用】 Atbash デコード
+function runInlineAtbash() {
+  const input = document.getElementById("inline-atbash-input").value;
+  const resultEl = document.getElementById("inline-atbash-result");
+  if (!input) return;
+  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+// Caesar 共通変換ロジック
 function decodeCaesarLogic(input, shift) {
   return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
@@ -342,7 +325,7 @@ function decodeCaesarLogic(input, shift) {
   });
 }
 
-// Atbash 共通変換処理
+// Atbash 共通変換ロジック
 function decodeAtbashLogic(input) {
   return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
@@ -356,11 +339,55 @@ function decodeAtbashLogic(input) {
   });
 }
 
-// 共通結果表示関数
+// ==========================================
+// 結果表示関数
+// ==========================================
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
     resultElement.textContent = message;
-    resultElement.style.color = isError ? "#ef4444" : "#00ffcc";
+    if (isError) {
+      resultElement.style.color = "#ef4444"; 
+    } else {
+      resultElement.style.color = "#00ffcc"; 
+    }
   }
+}
+
+// ==========================================
+// 問題一覧の自動生成
+// ==========================================
+function createQuestionList() {
+  const listContainer = document.getElementById("question-list");
+  if (!listContainer) return;
+  listContainer.innerHTML = ""; 
+
+  questions.forEach((q, index) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn"; 
+    btn.style.backgroundColor = "#1e293b";
+    btn.style.border = "1px solid #334155";
+    btn.style.margin = "0"; 
+    
+    btn.innerHTML = `
+      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
+      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
+    `;
+
+    btn.onclick = function() {
+      selectQuestion(index);
+    };
+    listContainer.appendChild(btn);
+  });
+}
+
+// ==========================================
+// 一覧から問題を選択
+// ==========================================
+function selectQuestion(index) {
+  currentQuestion = index; 
+  showQuestion();          
+  document.getElementById("result").textContent = "";
+  document.getElementById("answer").value = "";
+  showScreen("play-screen"); 
 }
