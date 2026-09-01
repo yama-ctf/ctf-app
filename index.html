@@ -9,17 +9,21 @@
 
   <div class="app-container">
 
+    <!-- サイドバー -->
     <aside class="sidebar">
       <h2>MENU</h2>
       <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
       <button class="nav-btn" onclick="showScreen('play-screen')">解析演習</button>
       <button class="nav-btn" onclick="showScreen('list-screen')">問題一覧</button>
       <button class="nav-btn" onclick="showScreen('tool-screen')">解析ツール</button>
-      <button class="nav-btn" onclick="showScreen('commentary-screen')">解説・豆知識</button> <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
+      <button class="nav-btn" onclick="showScreen('commentary-screen')">解説・豆知識</button>
+      <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
     </aside>
 
+    <!-- メインコンテンツ -->
     <main class="main-content">
       
+      <!-- ステータス表示領域 -->
       <div class="status-container">
         <div class="status-card"><div class="status-label">レート</div><div class="status-value"><span id="user-rate">1000</span></div></div>
         <div class="status-card"><div class="status-label">正解数</div><div class="status-value"><span id="user-solved">0</span></div></div>
@@ -27,11 +31,13 @@
         <div class="status-card"><div class="status-label">正答率</div><div class="status-value"><span id="user-accuracy">0%</span></div></div>
       </div>
       
+      <!-- 1. ホーム画面 -->
       <div id="home-screen" class="page-screen active">
         <h1>ホーム画面</h1>
         <p>ようこそ！メニューから選んでね。</p>
       </div>
 
+      <!-- 2. 解析演習画面 -->
       <div id="play-screen" class="page-screen">
         <h1>解析演習</h1>
         <div class="exercise-card">
@@ -49,18 +55,24 @@
         </div>
         <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
 
+        <!-- 簡易解析ツール（ドロップダウン） -->
         <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
           <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
             🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
           </button>
+          
           <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
             <div style="margin-bottom: 15px;">
               <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
               <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
                 <option value="base64">Base64 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
+                <option value="caesar">Caesar デコーダー</option>
+                <option value="atbash">Atbash デコーダー</option>
               </select>
             </div>
+
+            <!-- Base64エリア -->
             <div id="inline-base64-area">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
@@ -69,6 +81,8 @@
               <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
               <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
             </div>
+
+            <!-- Hexエリア -->
             <div id="inline-hex-area" style="display: none;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
@@ -76,18 +90,42 @@
               </div>
               <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
+
+            <!-- Caesarエリア -->
+            <div id="inline-caesar-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
+                <select id="inline-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;">
+                  <!-- JSで動的生成されます -->
+                </select>
+                <button class="exercise-submit-btn" onclick="runInlineCaesar()">デコード</button>
+              </div>
+              <p id="inline-caesar-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+            <!-- Atbashエリア -->
+            <div id="inline-atbash-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
+                <button class="exercise-submit-btn" onclick="runInlineAtbash()">デコード</button>
+              </div>
+              <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- 3. 問題一覧画面 -->
       <div id="list-screen" class="page-screen">
         <h1>問題一覧</h1>
-        <p>解きたい問題を選択してください。</p>
+        <p style="color: #94a3b8;">解きたい問題を選択してください。</p>
         <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
       </div>
 
+      <!-- 4. 解析ツール (独立画面) -->
       <div id="tool-screen" class="page-screen">
         <h1>解析ツール</h1>
+        
         <div class="exercise-card" style="max-width: 600px;">
           <h3>Base64 デコーダー</h3>
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -97,6 +135,7 @@
           <p id="independent-base64-result" style="font-weight: bold; margin: 0;"></p>
           <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
         </div>
+
         <div class="exercise-card" style="max-width: 600px;">
           <h3>Hex (16進数) デコーダー</h3>
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -105,8 +144,30 @@
           </div>
           <p id="independent-hex-result" style="font-weight: bold; margin: 0;"></p>
         </div>
+
+        <div class="exercise-card" style="max-width: 600px;">
+          <h3>Caesar (シーザー暗号) デコーダー</h3>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="tool-caesar-input" class="tool-input" placeholder="暗号文を入力">
+            <select id="tool-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;">
+              <!-- JSで動的生成されます -->
+            </select>
+            <button onclick="runCaesar()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="tool-caesar-result" style="font-weight: bold; margin: 0;"></p>
+        </div>
+
+        <div class="exercise-card" style="max-width: 600px;">
+          <h3>Atbash (アトバシュ暗号) デコーダー</h3>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="tool-atbash-input" class="tool-input" placeholder="暗号文を入力">
+            <button onclick="runAtbash()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="tool-atbash-result" style="font-weight: bold; margin: 0;"></p>
+        </div>
       </div>
 
+      <!-- 5. 解説・豆知識画面 -->
       <div id="commentary-screen" class="page-screen">
         <h1>暗号の解説 ＆ 豆知識</h1>
         <p style="color: #94a3b8; margin-bottom: 24px;">CTFでよく狙われる主要な形式の特徴と、解析に役立つ豆知識です。</p>
@@ -142,11 +203,50 @@
             </ul>
           </div>
         </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🏛️ Caesar 暗号（シーザー暗号）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> アルファベットを指定した文字数分だけ「ずらす」古典的な暗号方式です。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>文字数（26文字）が決まっているため、最大25パターンを試す「ブルートフォース（総当たり）」で簡単に解読可能です。</li>
+              <li>13文字ずらす設定は特に <code style="color: #00ffcc;">ROT13</code> と呼ばれ、ネット上のネタバレ防止にも広く使われています。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🔄 Atbash 暗号（アトバシュ暗号）</h3>
+            <span class="exercise-difficulty">頻出度: ★☆☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> アルファベットの順序を完全に対称に反転させる暗号です（A ↔ Z、B ↔ Y ...）。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>暗号化と復号化（元の文に戻す処理）が全く同じアルゴリズムで行える特徴を持っています。</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
+      <!-- 6. セーブ・記録画面 -->
       <div id="save-screen" class="page-screen">
         <h1>セーブ・記録</h1>
-        <p>ここに現在のあなたのレートや、進捗バーが表示される予定です（開発中）。</p>
+        <p style="color: #94a3b8; margin-bottom: 20px;">現在のあなたのプレイ実績です。</p>
+
+        <div class="exercise-card" style="max-width: 500px;">
+          <div style="line-height: 2.2; font-size: 16px;">
+            <p>現在のレート: <strong id="save-rate" style="color: #00ffcc; font-size: 20px;">1000</strong></p>
+            <p>クリア問題数: <strong id="save-solved" style="color: #00ffcc; font-size: 20px;">0</strong></p>
+            <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc; font-size: 20px;">0</strong></p>
+            <p>現在の正答率: <strong id="save-accuracy" style="color: #00ffcc; font-size: 20px;">0%</strong></p>
+          </div>
+        </div>
       </div>
 
     </main>
