@@ -86,8 +86,11 @@
         <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
       </div>
 
+      <!-- 4. 解析ツール独立画面 -->
       <div id="tool-screen" class="page-screen">
         <h1>解析ツール</h1>
+        
+        <!-- Base64 -->
         <div class="exercise-card" style="max-width: 600px;">
           <h3>Base64 デコーダー</h3>
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -97,6 +100,8 @@
           <p id="independent-base64-result" style="font-weight: bold; margin: 0;"></p>
           <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
         </div>
+
+        <!-- Hex -->
         <div class="exercise-card" style="max-width: 600px;">
           <h3>Hex (16進数) デコーダー</h3>
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
@@ -105,6 +110,30 @@
           </div>
           <p id="independent-hex-result" style="font-weight: bold; margin: 0;"></p>
         </div>
+
+        <!-- 🆕 シーザー暗号デコーダー -->
+        <div class="exercise-card" style="max-width: 600px;">
+          <h3>Caesar (シーザー) デコーダー</h3>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="tool-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
+            <select id="tool-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
+              <!-- JavaScriptで1〜25の選択肢を自動生成します -->
+            </select>
+            <button onclick="runCaesar()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="tool-caesar-result" style="font-weight: bold; margin: 0; color: #00ffcc;"></p>
+        </div>
+
+        <!-- 🆕 アトバシュ暗号デコーダー -->
+        <div class="exercise-card" style="max-width: 600px;">
+          <h3>Atbash (アトバシュ) デコーダー</h3>
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+            <input type="text" id="tool-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
+            <button onclick="runAtbash()" class="exercise-submit-btn">デコード</button>
+          </div>
+          <p id="tool-atbash-result" style="font-weight: bold; margin: 0; color: #00ffcc;"></p>
+        </div>
+
       </div>
 
       <div id="commentary-screen" class="page-screen">
