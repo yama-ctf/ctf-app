@@ -51,16 +51,18 @@
 
         <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
           <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
-            🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
-          </button>
-          <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
+            🛠️ 簡易解析ツール <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
             <div style="margin-bottom: 15px;">
               <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
               <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
                 <option value="base64">Base64 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
+                <option value="caesar">Caesar デコーダー</option>
+                <option value="atbash">Atbash デコーダー</option>
               </select>
             </div>
+
+            <!-- Base64エリア -->
             <div id="inline-base64-area">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
@@ -69,6 +71,8 @@
               <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
               <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
             </div>
+
+            <!-- Hexエリア -->
             <div id="inline-hex-area" style="display: none;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
@@ -76,10 +80,28 @@
               </div>
               <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
-          </div>
-        </div>
-      </div>
 
+            <!-- 🆕 Caesarエリア -->
+            <div id="inline-caesar-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
+                <select id="inline-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
+                  <!-- JSで1〜25の選択肢が自動追加されます -->
+                </select>
+                <button class="exercise-submit-btn" onclick="runInlineCaesar()">デコード</button>
+              </div>
+              <p id="inline-caesar-result" style="margin-top: 10px; font-weight: bold; color: #00ffcc;"></p>
+            </div>
+
+            <!-- 🆕 Atbashエリア -->
+            <div id="inline-atbash-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
+                <button class="exercise-submit-btn" onclick="runInlineAtbash()">デコード</button>
+              </div>
+              <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold; color: #00ffcc;"></p>
+            </div>
+          </div>
       <div id="list-screen" class="page-screen">
         <h1>問題一覧</h1>
         <p>解きたい問題を選択してください。</p>
