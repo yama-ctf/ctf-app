@@ -2,59 +2,55 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>CTFサイト</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CTF & 暗号解読演習システム</title>
+  <style>
+ 
+  <!-- ナビゲーションバー -->
+  <nav>
+    <button onclick="showScreen('play-screen')">演習画面</button>
+    <button onclick="showScreen('list-screen')">問題一覧</button>
+    <button onclick="showScreen('tool-screen')">解析ツール</button>
+    <button onclick="showScreen('guide-screen')">解説・豆知識</button>
+    <button onclick="showScreen('save-screen')">セーブ・記録</button>
+  </nav>
 
-  <div class="app-container">
+  <!-- ステータスバー -->
+  <div class="status-bar">
+    <div class="status-item">レート: <span id="user-rate" class="status-value">1000</span></div>
+    <div class="status-item">正解数: <span id="user-solved" class="status-value">0</span></div>
+    <div class="status-item">挑戦回数: <span id="user-attempts" class="status-value">0</span></div>
+    <div class="status-item">正解率: <span id="user-accuracy" class="status-value">0%</span></div>
+  </div>
 
-    <aside class="sidebar">
-      <h2>MENU</h2>
-      <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
-      <button class="nav-btn" onclick="showScreen('play-screen')">解析演習</button>
-      <button class="nav-btn" onclick="showScreen('list-screen')">問題一覧</button>
-      <button class="nav-btn" onclick="showScreen('tool-screen')">解析ツール</button>
-      <button class="nav-btn" onclick="showScreen('commentary-screen')">解説・豆知識</button> <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
-    </aside>
-
-    <main class="main-content">
-      
-      <div class="status-container">
-        <div class="status-card"><div class="status-label">レート</div><div class="status-value"><span id="user-rate">1000</span></div></div>
-        <div class="status-card"><div class="status-label">正解数</div><div class="status-value"><span id="user-solved">0</span></div></div>
-        <div class="status-card"><div class="status-label">挑戦数</div><div class="status-value"><span id="user-attempts">0</span></div></div>
-        <div class="status-card"><div class="status-label">正答率</div><div class="status-value"><span id="user-accuracy">0%</span></div></div>
-      </div>
-      
-      <div id="home-screen" class="page-screen active">
-        <h1>ホーム画面</h1>
-        <p>ようこそ！メニューから選んでね。</p>
-      </div>
-
-      <div id="play-screen" class="page-screen">
-        <h1>解析演習</h1>
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>現在の問題</h3>
-            <span id="difficulty" class="exercise-difficulty">難易度: 読み込み中...</span>
-          </div>
-          <div class="exercise-body">
-            <p id="question">問題が表示されます</p>
-          </div>
+  <main>
+    <!-- ==========================================
+         1. 演習画面 (play-screen)
+         ========================================== -->
+    <div id="play-screen" class="page-screen active">
+      <div class="card">
+        <h2 id="difficulty">難易度: --</h2>
+        <p id="question" style="font-size: 16px; line-height: 1.6; margin-bottom: 20px;">問題を読み込み中...</p>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <input type="text" id="answer" placeholder="Flagまたは回答を入力してください (例: FLAG{...})">
+          <button class="exercise-submit-btn" onclick="checkAnswer()">送信</button>
         </div>
-        <div class="exercise-input-group">
-          <input type="text" id="answer" class="exercise-input" placeholder="フラグを入力してください">
-          <button onclick="checkAnswer()" class="exercise-submit-btn">送信</button>
-        </div>
-        <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
+        <p id="result" style="font-weight: bold; min-height: 24px;"></p>
+      </div>
 
-        <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
-          <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
-            🛠️ 簡易解析ツール <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
+      <!-- 簡易解析ツール（ドロップダウン） -->
+      <div class="card" style="padding: 10px 20px;">
+        <div onclick="toggleDropdown()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: bold; color: #94a3b8;">簡易解析ツール</span>
+          <span id="arrow-icon" style="transition: transform 0.3s;">▽</span>
+        </div>
+
+        <div id="tools-dropdown" class="dropdown-container">
+          <div style="padding: 15px 0;">
             <div style="margin-bottom: 15px;">
               <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
-              <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
+              <select id="inline-tool-selector" onchange="switchInlineTool()" style="width: auto; display: inline-block;">
                 <option value="base64">Base64 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
                 <option value="caesar">Caesar デコーダー</option>
@@ -64,7 +60,7 @@
 
             <!-- Base64エリア -->
             <div id="inline-base64-area">
-              <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="display: flex; gap: 10px;">
                 <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
                 <button class="exercise-submit-btn" onclick="runBase64()">デコード</button>
               </div>
@@ -74,203 +70,160 @@
 
             <!-- Hexエリア -->
             <div id="inline-hex-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="display: flex; gap: 10px;">
                 <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
                 <button class="exercise-submit-btn" onclick="runHex()">デコード</button>
               </div>
               <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
-            <!-- 🆕 Caesarエリア -->
+            <!-- Caesarエリア -->
             <div id="inline-caesar-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="display: flex; gap: 10px;">
                 <input type="text" id="inline-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
-                <select id="inline-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
-                  <!-- JSで1〜25の選択肢が自動追加されます -->
+                <select id="inline-caesar-shift" style="width: auto;">
+                  <!-- JSで1〜25の選択肢が挿入されます -->
                 </select>
                 <button class="exercise-submit-btn" onclick="runInlineCaesar()">デコード</button>
               </div>
-              <p id="inline-caesar-result" style="margin-top: 10px; font-weight: bold; color: #00ffcc;"></p>
+              <p id="inline-caesar-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
-            <!-- 🆕 Atbashエリア -->
+            <!-- Atbashエリア -->
             <div id="inline-atbash-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
+              <div style="display: flex; gap: 10px;">
                 <input type="text" id="inline-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
                 <button class="exercise-submit-btn" onclick="runInlineAtbash()">デコード</button>
               </div>
-              <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold; color: #00ffcc;"></p>
+              <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
           </div>
-      <div id="list-screen" class="page-screen">
-        <h1>問題一覧</h1>
-        <p>解きたい問題を選択してください。</p>
-        <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
+        </div>
       </div>
+    </div>
 
-      <!-- 4. 解析ツール独立画面 -->
-      <div id="tool-screen" class="page-screen">
-        <h1>解析ツール</h1>
+    <!-- ==========================================
+         2. 問題一覧画面 (list-screen)
+         ========================================== -->
+    <div id="list-screen" class="page-screen">
+      <div class="card">
+        <h2>問題一覧</h2>
+        <p style="color: #94a3b8; margin-bottom: 15px;">挑戦したい問題を選択してください。</p>
+        <div id="question-list" class="grid-container">
+          <!-- JSで自動的に問題ボタンが生成されます -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         3. 解析ツール独立画面 (tool-screen)
+         ========================================== -->
+    <div id="tool-screen" class="page-screen">
+      <div class="card">
+        <h2>解析ツール (独立機能)</h2>
         
         <!-- Base64 -->
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Base64 デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="independent-base64-input" class="tool-input" placeholder="デコードしたい文字列">
-            <button onclick="runIndependentBase64()" class="exercise-submit-btn">デコード</button>
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">Base64 デコーダー</h3>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
+            <button class="exercise-submit-btn" onclick="runIndependentBase64()">デコード</button>
           </div>
-          <p id="independent-base64-result" style="font-weight: bold; margin: 0;"></p>
-          <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
+          <p id="tool-base64-result" style="margin-top: 8px; font-weight: bold; color: #00ffcc;"></p>
+          <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
         </div>
 
         <!-- Hex -->
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Hex (16進数) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="independent-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
-            <button onclick="runIndependentHex()" class="exercise-submit-btn">デコード</button>
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">Hex (16進数) デコーダー</h3>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
+            <button class="exercise-submit-btn" onclick="runIndependentHex()">デコード</button>
           </div>
-          <p id="independent-hex-result" style="font-weight: bold; margin: 0;"></p>
+          <p id="tool-hex-result" style="margin-top: 8px; font-weight: bold; color: #00ffcc;"></p>
         </div>
 
-        <!-- 🆕 シーザー暗号デコーダー -->
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Caesar (シーザー) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="tool-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
-            <select id="tool-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
-              <!-- JavaScriptで1〜25の選択肢を自動生成します -->
+        <!-- Caesar -->
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">Caesar (シーザー暗号) デコーダー</h3>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="tool-caesar-input" class="tool-input" placeholder="暗号文を入力">
+            <select id="tool-caesar-shift" style="width: auto;">
+              <!-- JSで生成 -->
             </select>
-            <button onclick="runCaesar()" class="exercise-submit-btn">デコード</button>
+            <button class="exercise-submit-btn" onclick="runCaesar()">デコード</button>
           </div>
-          <p id="tool-caesar-result" style="font-weight: bold; margin: 0; color: #00ffcc;"></p>
+          <p id="tool-caesar-result" style="margin-top: 8px; font-weight: bold; color: #00ffcc;"></p>
         </div>
 
-        <!-- 🆕 アトバシュ暗号デコーダー -->
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Atbash (アトバシュ) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="tool-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
-            <button onclick="runAtbash()" class="exercise-submit-btn">デコード</button>
+        <!-- Atbash -->
+        <div>
+          <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 8px;">Atbash (アトバシュ暗号) デコーダー</h3>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="tool-atbash-input" class="tool-input" placeholder="暗号文を入力">
+            <button class="exercise-submit-btn" onclick="runAtbash()">デコード</button>
           </div>
-          <p id="tool-atbash-result" style="font-weight: bold; margin: 0; color: #00ffcc;"></p>
+          <p id="tool-atbash-result" style="margin-top: 8px; font-weight: bold; color: #00ffcc;"></p>
         </div>
-
       </div>
+    </div>
 
-      <div id="commentary-screen" class="page-screen">
-        <h1>暗号の解説 ＆ 豆知識</h1>
-        <p style="color: #94a3b8; margin-bottom: 24px;">CTFでよく狙われる主要な形式の特徴と、解析に役立つ豆知識です。</p>
-
-        <h2 style="color: #38bdf8; border-bottom: 1px solid #1f2937; padding-bottom: 8px; margin-top: 30px;">📂 Encoding (符号化)</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: -5px; margin-bottom: 15px;">データを特定のルールで別の文字に変換する技術。鍵がないため誰でも元に戻せます。</p>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>Base64 / Base32</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【Base64】</strong> 64種類の文字（A-Z, a-z, 0-9, +, /）で表す形式。末尾にパディング文字 <code style="color: #00ffcc;">=</code> や <code style="color: #00ffcc;">==</code> が付くのが特徴です。大文字・小文字が混在します。</p>
-            <p><strong>【Base32】</strong> 32種類の文字（A-Z, 2-7）で表す形式。数字の <code style="color: #00ffcc;">0, 1, 8, 9</code> や小文字は使われません。末尾のパディングは最大で6つの <code style="color: #00ffcc;">=</code> になることがあります。</p>
-            <ul>
-              <li>Base64はアルファベットの大文字と小文字が混ざっていますが、Base32は<strong>「すべて大文字」</strong>で、数字は2〜7しか使われません。これが一瞬で見分ける最大のコツです！</li>
-            </ul>
-          </div>
+    <!-- ==========================================
+         4. 解説・豆知識画面 (guide-screen)
+         ========================================== -->
+    <div id="guide-screen" class="page-screen">
+      <div class="card">
+        <h2>暗号とエンコードの豆知識</h2>
+        
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #0ea5e9; font-size: 16px;">1. Base64 エンコード</h3>
+          <p style="margin-top: 5px; color: #cbd5e1;">
+            64種類の英数字・記号 (<code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>+</code>, <code>/</code>) を使ってデータを表現する方式です。<br>
+            末尾にパディングとして <code>=</code> または <code>==</code> が付く特徴があります。
+          </p>
         </div>
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>Hex (16進数) / Binary (2進数)</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【Hex】</strong> 16種類の文字（0-9, a-f）で表す形式。コンピュータの生データ（バイナリ）を文字で表す時の定番です。</p>
-            <p><strong>【Binary】</strong> 0と1だけで表す形式。コンピュータが直接理解する最も原始的なデータ表示です。</p>
-            <ul>
-              <li>Hex（16進数）は、文字の中に <code style="color: #00ffcc;">g</code> 以降のアルファベット（g, h, i...など）が<strong>絶対に出てきません</strong>。</li>
-              <li>Binary（2進数）は、文字数が「8の倍数」で並んでいることが多く、8桁ずつ区切ることでアルファベット1文字にデコードできます。</li>
-            </ul>
-          </div>
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #0ea5e9; font-size: 16px;">2. Caesar 暗号 (シーザー暗号)</h3>
+          <p style="margin-top: 5px; color: #cbd5e1;">
+            アルファベットを指定した文字数だけずらす単一換字式暗号です。<br>
+            例えば、13文字ずらす設定は <code>ROT13</code> と呼ばれ、掲示板のネタバレ防止などで広く使われます。
+          </p>
         </div>
 
-        <h2 style="color: #38bdf8; border-bottom: 1px solid #1f2937; padding-bottom: 8px; margin-top: 40px;">📂 Classical Cipher (古典暗号)</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: -5px; margin-bottom: 15px;">コンピュータ以前に使われていた、文字をずらしたり入れ替えたりする単純な暗号。</p>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>Caesar (シーザー) / Atbash (アトバシュ)</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【Caesar】</strong> アルファベットを指定された数だけ後ろにずらす暗号（例：3文字ずらすと A → D）。別名「ROT（ローテート）」。13文字ずらすものは特に「ROT13」と呼ばれます。</p>
-            <p><strong>【Atbash】</strong> アルファベットを「逆順」に置き換える暗号（A → Z, B → Y, C → X ...）。</p>
-            <ul>
-              <li>Caesarは「ずらし幅」が最大で25パターン（アルファベットの数）しかないので、総当たりで全パターン書き出せば一瞬で解けます。</li>
-              <li>「ROT13」は、13文字ずらすため、<strong>暗号化するプログラムと復号するプログラムが全く同じ</strong>（13ずらしたものを、もう一度13ずらすと26ずれて元の文字に戻るため）という面白い特徴があります。</li>
-            </ul>
-          </div>
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: #0ea5e9; font-size: 16px;">3. Atbash 暗号 (アトバシュ暗号)</h3>
+          <p style="margin-top: 5px; color: #cbd5e1;">
+            アルファベットのAとZ、BとYのように、アルファベットの順序を完全に逆転させる換字暗号です。
+          </p>
         </div>
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>Vigenere (ヴィジュネル)</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【Vigenere】</strong> シーザー暗号の進化系。1文字ずつずらす数を変えるために、「キーワード（鍵）」を使って暗号化します。</p>
-            <ul>
-              <li>暗号文の中に、同じパターンの文字の並びが繰り返し登場する場合、その間隔から「鍵の文字数」を推測することができます（カシスキー・テスト）。</li>
-              <li>鍵さえ分かってしまえば、あとはシーザー暗号と同じ要領で簡単に解読可能です。</li>
-            </ul>
-          </div>
+        <div>
+          <h3 style="color: #0ea5e9; font-size: 16px;">4. Hex (16進数表現)</h3>
+          <p style="margin-top: 5px; color: #cbd5e1;">
+            コンピュータのバイトデータを <code>0-9</code> および <code>a-f</code> (または <code>A-F</code>) の2桁の16進数で表現したものです。<br>
+            例: ASCIIの "A" は 16進数で <code>41</code> となります。
+          </p>
         </div>
-
-        <h2 style="color: #38bdf8; border-bottom: 1px solid #1f2937; padding-bottom: 8px; margin-top: 40px;">📂 Hash (ハッシュ関数・暗号学的識別)</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: -5px; margin-bottom: 15px;">逆算して元のデータに戻すことが不可能な「一方通行」の関数。データの改ざん検知やパスワード保存に使われます。</p>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>MD5 / SHA1 / SHA256 識別</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p>ハッシュ値は元に戻せませんが、CTFでは<strong>「ハッシュ値の文字数（桁数）」</strong>を見ることで、どのアルゴリズムで生成されたかを識別するのが基本です。</p>
-            <ul>
-              <li><strong>【MD5】</strong> 16進数で <strong>32文字</strong> (128ビット)。現在では衝突攻撃が可能で安全ではありません。</li>
-              <li><strong>【SHA1】</strong> 16進数で <strong>40文字</strong> (160ビット)。gitのコミットIDなどでも使われています。</li>
-              <li><strong>【SHA256】</strong> 16進数で <strong>64文字</strong> (256ビット)。現在の標準的な暗号強度を持っています。</li>
-              <li><strong>豆知識：</strong> ハッシュ値から元の値を逆算するのは数学的に不可能ですが、「一般的なパスワードのハッシュ値」であれば、データベースサイト（CrackStationなど）で検索すると一瞬で元の文字が特定できることが多々あります。</li>
-            </ul>
-          </div>
-        </div>
-
-        <h2 style="color: #38bdf8; border-bottom: 1px solid #1f2937; padding-bottom: 8px; margin-top: 40px;">📂 Web (ウェブ関連エンコード)</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: -5px; margin-bottom: 15px;">ブラウザやサーバーが、URLやHTMLの中で特殊文字を安全に伝えるための形式。</p>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>URL Decode / HTML Decode</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【URLデコード】</strong> パーセントエンコーディング。URLで使えない記号や日本語を、パーセントと16進数で表します。</p>
-            <p><strong>【HTMLデコード】</strong> HTMLの画面上でタグ（&lt; や &gt;）をそのまま文字として表示するためのエスケープ処理を元に戻します。</p>
-            <ul>
-              <li><strong>URLエンコードの見分け方：</strong> 文字のいたるところに <code style="color: #00ffcc;">%20</code> や <code style="color: #00ffcc;">%3F</code> のように、<strong>「% ＋ 16進数2文字」</strong>が頻出します。ちなみに <code style="color: #00ffcc;">%20</code> は「半角スペース」のことです。</li>
-              <li><strong>HTMLエンコードの見分け方：</strong> <code style="color: #00ffcc;">&amp;amp;</code> や <code style="color: #00ffcc;">&amp;lt;</code>、<code style="color: #00ffcc;">&amp;#123;</code> のように、<strong>「&amp;（アンド）から始まって ;（セミコロン）で終わる」</strong>パターンです。</li>
-            </ul>
-          </div>
-        </div>
-
       </div>
-      <div id="save-screen" class="page-screen">
-        <h1>セーブ・記録</h1>
-        <p>ここに現在のあなたのレートや、進捗バーが表示される予定です（開発中）。</p>
-      </div>
+    </div>
 
-    </main>
-  </div>
+    <!-- ==========================================
+         5. セーブ・記録画面 (save-screen)
+         ========================================== -->
+    <div id="save-screen" class="page-screen">
+      <div class="card">
+        <h2>セーブ・記録情報</h2>
+        <p style="color: #cbd5e1; margin-bottom: 15px;">現在のプレイ実績と進行状況です。</p>
+        
+        <div style="line-height: 2;">
+          <p>現在のレート: <strong id="save-rate" style="color: #00ffcc;">1000</strong></p>
+          <p>クリア問題数: <strong id="save-solved" style="color: #00ffcc;">0</strong></p>
+          <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc;">0</strong></p>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script src="script.js"></script>
 </body>
