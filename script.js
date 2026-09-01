@@ -271,6 +271,86 @@ function decodeHexLogic(inputId, resultId) {
     showResult(resultId, 'デコード失敗', true);
   }
 }
+// ==========================================
+// シーザー暗号 (Caesar Cipher) 処理
+// ==========================================
+
+// ドキュメント読み込み完了時に、シーザー暗号のシフト数（1〜25）プルダウンを自動生成
+window.addEventListener("DOMContentLoaded", () => {
+  const select = document.getElementById("tool-caesar-shift");
+  if (select) {
+    select.innerHTML = ""; // 初期化
+    for (let i = 1; i <= 25; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${i}文字戻す`;
+      if (i === 13) opt.textContent += " (ROT13)";
+      select.appendChild(opt);
+    }
+  }
+});
+
+function runCaesar() {
+  const input = document.getElementById("tool-caesar-input").value;
+  const shiftSelect = document.getElementById("tool-caesar-shift");
+  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+  const resultEl = document.getElementById("tool-caesar-result");
+
+  if (!input) {
+    resultEl.textContent = "文字列を入力してください";
+    resultEl.style.color = "#ef4444";
+    return;
+  }
+
+  // アルファベットを shift 分戻す処理（記号や数字は保持）
+  const decoded = input.replace(/[a-zA-Z]/g, (char) => {
+    const code = char.charCodeAt(0);
+    // 大文字 (A=65, Z=90)
+    if (code >= 65 && code <= 90) {
+      return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
+    }
+    // 小文字 (a=97, z=122)
+    if (code >= 97 && code <= 122) {
+      return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
+    }
+    return char;
+  });
+
+  resultEl.textContent = `結果: ${decoded}`;
+  resultEl.style.color = "#00ffcc";
+}
+
+// ==========================================
+// アトバシュ暗号 (Atbash Cipher) 処理
+// ==========================================
+
+function runAtbash() {
+  const input = document.getElementById("tool-atbash-input").value;
+  const resultEl = document.getElementById("tool-atbash-result");
+
+  if (!input) {
+    resultEl.textContent = "文字列を入力してください";
+    resultEl.style.color = "#ef4444";
+    return;
+  }
+
+  // A<->Z, B<->Y, a<->z 反転処理（記号や数字は保持）
+  const decoded = input.replace(/[a-zA-Z]/g, (char) => {
+    const code = char.charCodeAt(0);
+    // 大文字 (65 + 90 = 155)
+    if (code >= 65 && code <= 90) {
+      return String.fromCharCode(155 - code);
+    }
+    // 小文字 (97 + 122 = 219)
+    if (code >= 97 && code <= 122) {
+      return String.fromCharCode(219 - code);
+    }
+    return char;
+  });
+
+  resultEl.textContent = `結果: ${decoded}`;
+  resultEl.style.color = "#00ffcc";
+}
 
 // ==========================================
 // 結果表示関数
