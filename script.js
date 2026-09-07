@@ -1,17 +1,15 @@
 let questions = [];
 let currentQuestion = 0;
 
-// ==========================================
 // ステータスを記録するための変数
-// ==========================================
+
 let userRate = 1000;   
 let userSolved = 0;    
 let userAttempts = 0;  
 let lastSubmittedAnswer = ""; 
 
-// ==========================================
 // 画面切り替え関数
-// ==========================================
+
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
   screens.forEach(screen => {
@@ -24,9 +22,9 @@ function showScreen(screenId) {
   }
 }
 
-// ==========================================
+
 // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
-// ==========================================
+
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
   const arrow = document.getElementById('arrow-icon');
@@ -40,9 +38,9 @@ function toggleDropdown() {
   }
 }
 
-// ==========================================
+
 // 簡易解析ツールの切り替え関数 (Caesar / Atbash 対応版)
-// ==========================================
+
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const areas = {
@@ -64,9 +62,8 @@ function switchInlineTool() {
   }
 }
 
-// ==========================================
 // JSON読み込み
-// ==========================================
+
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
@@ -75,9 +72,9 @@ fetch("questions.json")
     createQuestionList();  
   });
 
-// ==========================================
+
 // 問題表示関数
-// ==========================================
+
 function showQuestion() {
   if (questions.length === 0) return; 
   let q = questions[currentQuestion];
@@ -85,9 +82,9 @@ function showQuestion() {
   document.getElementById("question").textContent = q.question;
 }
 
-// ==========================================
+
 // 上部のステータス画面を最新データに書き換える関数
-// ==========================================
+
 function updateStatusDOM() {
   document.getElementById("user-rate").textContent = userRate;
   document.getElementById("user-solved").textContent = userSolved;
@@ -100,9 +97,9 @@ function updateStatusDOM() {
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 }
 
-// ==========================================
+
 // 正解判定（Eloレーティング ＆ 連打対策版）
-// ==========================================
+
 function checkAnswer() {
   if (currentQuestion >= questions.length) return;
 
@@ -170,9 +167,9 @@ function checkAnswer() {
   updateStatusDOM();
 }
 
-// ==========================================
+
 // Base64 デコード処理
-// ==========================================
+
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
@@ -222,9 +219,9 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   }
 }
 
-// ==========================================
+
 // Hex デコード処理
-// ==========================================
+
 function runHex() {
   decodeHexLogic('tool-hex-input', 'tool-hex-result');
 }
@@ -246,9 +243,9 @@ function decodeHexLogic(inputId, resultId) {
   }
 }
 
-// ==========================================
+
 // シーザー ＆ アトバシュ 実行・ロジック処理
-// ==========================================
+
 
 // ドキュメント読み込み時にシフト数（1〜25）プルダウンを全画面分生成
 window.addEventListener("DOMContentLoaded", () => {
@@ -339,9 +336,9 @@ function decodeAtbashLogic(input) {
   });
 }
 
-// ==========================================
+
 // 結果表示関数
-// ==========================================
+
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
@@ -354,9 +351,9 @@ function showResult(resultId, message, isError) {
   }
 }
 
-// ==========================================
+
 // 問題一覧の自動生成
-// ==========================================
+
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
   if (!listContainer) return;
@@ -381,9 +378,9 @@ function createQuestionList() {
   });
 }
 
-// ==========================================
+
 // 一覧から問題を選択
-// ==========================================
+
 function selectQuestion(index) {
   currentQuestion = index; 
   showQuestion();          
