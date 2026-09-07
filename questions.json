@@ -1,7 +1,7 @@
 [
   {
     "question": "SGVsbG8= をデコードせよ",
-    "hint":"base34",
+    "hint":"base64",
     "answer": "Hello",
     "difficulty": 100
   },
@@ -28,5 +28,47 @@
     "ihnt":"Hex",
     "answer": "CTF",
     "difficulty": 300
+   },
+  {
+    "question": "32桁のハッシュ値『5d41402abc4b2a76b9719d911017c592』を出力したハッシュアルゴリズム（識別名）を答えよ。",
+    "hint": "128ビット（32桁の16進数）のハッシュ値です。",
+    "answer": "MD5",
+    "difficulty": 100
+  },
+  {
+    "question": "40桁のハッシュ値『aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d』を出力したハッシュアルゴリズム（識別名）を答えよ。",
+    "hint": "160ビット（40桁の16進数）のハッシュ値です。",
+    "answer": "SHA1",
+    "difficulty": 120
+  },
+  {
+    "question": "64桁のハッシュ値『2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824』を出力したハッシュアルゴリズム（識別名）を答えよ。",
+    "hint": "256ビット（64桁の16進数）で、現在最も広く使われている標準的なハッシュ関数です。",
+    "answer": "SHA256",
+    "difficulty": 150
+  },
+  {
+    "question": "URLエンコードされた文字列『%48%65%6c%6c%6f』をデコードせよ。",
+    "hint": "%に続く2桁の16進数をASCII文字に変換します。",
+    "answer": "Hello",
+    "difficulty": 100
+  },
+  {
+    "question": "HTMLエンティティ（実体参照）で記述された『&lt;flag&gt;』をデコードせよ。",
+    "hint": "&lt; は 『<』、&gt; は 『>』を表します。",
+    "answer": "<flag>",
+    "difficulty": 110
+  },
+  {
+    "question": "暗号文『RIJVS』を鍵『KEY』でヴィジュネル暗号（Vigenere）復号せよ。",
+    "hint": "K(10), E(4), Y(24) の順で各文字をシフトバック（戻す）します。",
+    "answer": "HELLO",
+    "difficulty": 200
+  },
+  {
+    "question": "アトバシュ暗号（Atbash）で暗号化された『SVOOL』を復号せよ。",
+    "hint": "A↔Z, B↔Y, C↔X ... のようにアルファベットの順序を反転させます。",
+    "answer": "HELLO",
+    "difficulty": 130
   }
 ]
