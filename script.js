@@ -79,7 +79,8 @@ fetch("questions.json")
     questions = data;
     showQuestion();        
     createQuestionList();  
-  });
+  })
+  .catch(err => console.error("JSON読み込みエラー:", err));
 
 // 問題表示関数
 function showQuestion() {
@@ -87,6 +88,18 @@ function showQuestion() {
   let q = questions[currentQuestion];
   document.getElementById("difficulty").textContent = "難易度: " + q.difficulty;
   document.getElementById("question").textContent = q.question;
+}
+
+// 次の問題をロードする関数
+function loadNextQuestion() {
+  if (currentQuestion + 1 < questions.length) {
+    currentQuestion++;
+    showQuestion();
+    document.getElementById("result").textContent = "";
+  } else {
+    document.getElementById("result").textContent = "全問題をクリアしました！";
+    document.getElementById("result").style.color = "#00ffcc";
+  }
 }
 
 // 上部のステータス画面を最新データに書き換える関数
@@ -110,7 +123,7 @@ function updateStatusDOM() {
 
 // 正解判定（Eloレーティング ＆ 連打対策版）
 function checkAnswer() {
-  if (currentQuestion >= questions.length) return;
+  if (questions.length === 0 || currentQuestion >= questions.length) return;
 
   let q = questions[currentQuestion];
   if (q.isCleared) {
@@ -119,71 +132,68 @@ function checkAnswer() {
     return;
   }
 
- // 1. 入力値の取得
-let userAnswer = document.getElementById("answer").value.trim();
+  // 1. 入力値の取得
+  let userAnswer = document.getElementById("answer").value.trim();
 
-// 連投防止（※不正解時に再送信できるよう、判定フラグ管理へ変更を推奨）
-if (userAnswer === lastSubmittedAnswer) {
-  return;    
-}   
-lastSubmittedAnswer = userAnswer;    
+  // 連投防止
+  if (userAnswer === lastSubmittedAnswer) {
+    return;    
+  }   
+  lastSubmittedAnswer = userAnswer;    
 
-let result = document.getElementById("result");
-userAttempts++;
+  let result = document.getElementById("result");
+  userAttempts++;
 
-// イロレーティング計算用
-const rProblem = Number(q.difficulty) || 1200;
-const rUser = userRate;
-const K = 32; 
-const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
-let rateChange = 0;
+  // イロレーティング計算用
+  const rProblem = Number(q.difficulty) || 1200;
+  const rUser = userRate;
+  const K = 32; 
+  const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
+  let rateChange = 0;
 
-// 2. 複数回答（配列）に対応した正解判定
-let isCorrect = false;
-if (Array.isArray(q.answer)) {
-  isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
-} else {
-  isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
-}
+  // 2. 複数回答（配列）に対応した正解判定
+  let isCorrect = false;
+  if (Array.isArray(q.answer)) {
+    isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
+  } else {
+    isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
+  }
 
-// 3. 正解・不正解の分岐処理
-if (isCorrect) {  
-  result.textContent = "正解！";
-  result.style.color = "#00ffcc"; 
-  userSolved++;
+  // 3. 正解・不正解の分岐処理
+  if (isCorrect) {  
+    result.textContent = "正解！";
+    result.style.color = "#00ffcc"; 
+    userSolved++;
+    q.isCleared = true; // クリアフラグ
 
-  // レート上昇計算
-  rateChange = Math.round(K * (1 - expectedScore));
-  userRate += rateChange;
+    // レート上昇計算
+    rateChange = Math.round(K * (1 - expectedScore));
+    userRate += rateChange;
 
-  // UI・ステータス更新関数があれば実行
-  updateStatusUI(); 
+    updateStatusDOM(); // ステータスUI更新呼び出し
 
-  // 【重要】正解後に画面遷移または次の問題をロードする処理
-  setTimeout(() => {
-    lastSubmittedAnswer = ""; // 送信ロックを解除
-    document.getElementById("answer").value = ""; // 入力欄をクリア
+    // 【重要】正解後に次の問題をロードする処理
+    setTimeout(() => {
+      lastSubmittedAnswer = ""; // 送信ロックを解除
+      document.getElementById("answer").value = ""; // 入力欄をクリア
+      loadNextQuestion(); // 次の問題へ進む
+    }, 1500); // 1.5秒後に実行
+
+  } else {
+    result.textContent = "不正解...";
+    result.style.color = "#ef4444";
+
+    // レート下落計算
+    rateChange = Math.round(K * (0 - expectedScore));
+    userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
     
-    // 次の問題へ進む、または画面を切り替える関数を呼び出す
-    // 例: showScreen('play-screen'); や nextQuestion();
-    if (typeof loadNextQuestion === "function") {
-      loadNextQuestion();
-    }
-  }, 1500); // 1.5秒後に実行
+    updateStatusDOM(); // ステータスUI更新呼び出し
+    
+    // 不正解のときは再度試行できるようにロックを解除
+    lastSubmittedAnswer = ""; 
+  }
+} // ← この閉じカッコが欠落していました
 
-} else {
-  result.textContent = "不正解...";
-  result.style.color = "#ef4444";
-
-  // レート下落計算
-  rateChange = Math.round(K * (0 - expectedScore));
-  userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
-  
-  updateStatusUI();
-  
-  // 不正解のときは再度試行できるようにロックを解除
-  lastSubmittedAnswer = ""; 
-}
 // Base64 デコード処理
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
@@ -270,7 +280,7 @@ function decodeBinaryLogic(inputId, resultId) {
   }
 }
 
-// Caesar ＆ Atbash 初期化設定（プルダウン自動生成）
+// Caesar ＆ Atbash 初期化設定
 window.addEventListener("DOMContentLoaded", () => {
   const selects = [
     document.getElementById("tool-caesar-shift-select"),
