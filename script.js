@@ -2,14 +2,12 @@ let questions = [];
 let currentQuestion = 0;
 
 // ステータスを記録するための変数
-
-let userRate = 1000;   
-let userSolved = 0;    
-let userAttempts = 0;  
+let userRate = 1000;    
+let userSolved = 0;     
+let userAttempts = 0;   
 let lastSubmittedAnswer = ""; 
 
 // 画面切り替え関数
-
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
   screens.forEach(screen => {
@@ -22,9 +20,7 @@ function showScreen(screenId) {
   }
 }
 
-
 // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
-
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
   const arrow = document.getElementById('arrow-icon');
@@ -38,16 +34,19 @@ function toggleDropdown() {
   }
 }
 
-
-// 簡易解析ツールの切り替え関数 (Caesar / Atbash 対応版)
-
+// 簡易解析ツールの切り替え関数（全ツール対応版）
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const areas = {
     base64: document.getElementById('inline-base64-area'),
     hex: document.getElementById('inline-hex-area'),
+    binary: document.getElementById('inline-binary-area'),
     caesar: document.getElementById('inline-caesar-area'),
-    atbash: document.getElementById('inline-atbash-area')
+    atbash: document.getElementById('inline-atbash-area'),
+    vigenere: document.getElementById('inline-vigenere-area'),
+    url: document.getElementById('inline-url-area'),
+    html: document.getElementById('inline-html-area'),
+    hash: document.getElementById('inline-hash-area')
   };
   const dropdown = document.getElementById('tools-dropdown');
 
@@ -57,13 +56,23 @@ function switchInlineTool() {
     }
   }
 
+  // アコーディオンの高さ自動調整
   if (dropdown && dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
     dropdown.style.maxHeight = dropdown.scrollHeight + "px";
   }
 }
 
-// JSON読み込み
+// 独立画面ツールの表示切替関数
+function switchMainTool() {
+  const tool = document.getElementById('tool-select').value;
+  const caesarExtra = document.getElementById('tool-extra-caesar');
+  const vigenereExtra = document.getElementById('tool-extra-vigenere');
 
+  if (caesarExtra) caesarExtra.style.display = (tool === 'caesar') ? 'block' : 'none';
+  if (vigenereExtra) vigenereExtra.style.display = (tool === 'vigenere') ? 'block' : 'none';
+}
+
+// JSON読み込み
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
@@ -72,9 +81,7 @@ fetch("questions.json")
     createQuestionList();  
   });
 
-
 // 問題表示関数
-
 function showQuestion() {
   if (questions.length === 0) return; 
   let q = questions[currentQuestion];
@@ -82,9 +89,7 @@ function showQuestion() {
   document.getElementById("question").textContent = q.question;
 }
 
-
 // 上部のステータス画面を最新データに書き換える関数
-
 function updateStatusDOM() {
   document.getElementById("user-rate").textContent = userRate;
   document.getElementById("user-solved").textContent = userSolved;
@@ -95,11 +100,15 @@ function updateStatusDOM() {
     accuracy = Math.round((userSolved / userAttempts) * 100); 
   }
   document.getElementById("user-accuracy").textContent = accuracy + "%";
+
+  // セーブ画面側にも連動して数値を反映
+  if (document.getElementById("save-rate")) document.getElementById("save-rate").textContent = userRate;
+  if (document.getElementById("save-solved")) document.getElementById("save-solved").textContent = userSolved;
+  if (document.getElementById("save-attempts")) document.getElementById("save-attempts").textContent = userAttempts;
+  if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
 }
 
-
 // 正解判定（Eloレーティング ＆ 連打対策版）
-
 function checkAnswer() {
   if (currentQuestion >= questions.length) return;
 
@@ -112,7 +121,6 @@ function checkAnswer() {
 
   let userAnswer = document.getElementById("answer").value.trim();
 
-  // 重複送信チェック
   if (userAnswer === lastSubmittedAnswer) {
     return; 
   }
@@ -167,15 +175,9 @@ function checkAnswer() {
   updateStatusDOM();
 }
 
-
 // Base64 デコード処理
-
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
-}
-
-function runIndependentBase64() {
-  decodeBase64Logic('independent-base64-input', 'independent-base64-result', 'independent-base64-img');
 }
 
 function decodeBase64Logic(inputId, resultId, imgId) {
@@ -183,9 +185,11 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   const resultText = document.getElementById(resultId);
   const resultImg = document.getElementById(imgId);
   
-  resultText.textContent = "";
-  resultImg.style.display = "none";
-  resultImg.src = "";
+  if (resultText) resultText.textContent = "";
+  if (resultImg) {
+    resultImg.style.display = "none";
+    resultImg.src = "";
+  }
 
   if (!input) return;
 
@@ -205,8 +209,10 @@ function decodeBase64Logic(inputId, resultId, imgId) {
         if (lowerInput.startsWith('/9j/')) mimeType = 'image/jpeg';
         if (lowerInput.startsWith('r0lg')) mimeType = 'image/gif';
       }
-      resultImg.src = `data:${mimeType};base64,${input}`;
-      resultImg.style.display = "block"; 
+      if (resultImg) {
+        resultImg.src = `data:${mimeType};base64,${input}`;
+        resultImg.style.display = "block"; 
+      }
       showResult(resultId, '画像のデコードに成功しました！', false);
     } else {
       const binString = atob(input);
@@ -219,19 +225,14 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   }
 }
 
-
 // Hex デコード処理
-
 function runHex() {
   decodeHexLogic('tool-hex-input', 'tool-hex-result');
 }
 
-function runIndependentHex() {
-  decodeHexLogic('independent-hex-input', 'independent-hex-result');
-}
-
 function decodeHexLogic(inputId, resultId) {
   const input = document.getElementById(inputId).value.trim();
+  if (!input) return;
   try {
     const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  
     const decoded = hex.match(/.{1,2}/g).map(function(b) {
@@ -239,18 +240,31 @@ function decodeHexLogic(inputId, resultId) {
     }).join('');
     showResult(resultId, decoded, false);
   } catch(e) {
-    showResult(resultId, 'デコード失敗', true);
+    showResult(resultId, 'デコード失敗（正しい16進数ではありません）', true);
   }
 }
 
+// Binary (2進数) デコード処理
+function runInlineBinary() {
+  decodeBinaryLogic('inline-binary-input', 'inline-binary-result');
+}
 
-// シーザー ＆ アトバシュ 実行・ロジック処理
+function decodeBinaryLogic(inputId, resultId) {
+  const input = document.getElementById(inputId).value.trim();
+  if (!input) return;
+  try {
+    const cleanBin = input.replace(/\s+/g, '');
+    const decoded = cleanBin.match(/.{1,8}/g).map(b => String.fromCharCode(parseInt(b, 2))).join('');
+    showResult(resultId, decoded, false);
+  } catch(e) {
+    showResult(resultId, 'デコード失敗（正しい2進数ではありません）', true);
+  }
+}
 
-
-// ドキュメント読み込み時にシフト数（1〜25）プルダウンを全画面分生成
+// Caesar ＆ Atbash 初期化設定（プルダウン自動生成）
 window.addEventListener("DOMContentLoaded", () => {
   const selects = [
-    document.getElementById("tool-caesar-shift"),
+    document.getElementById("tool-caesar-shift-select"),
     document.getElementById("inline-caesar-shift")
   ];
 
@@ -268,47 +282,21 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// 【独立画面用】 Caesar デコード
-function runCaesar() {
-  const input = document.getElementById("tool-caesar-input").value;
-  const shiftSelect = document.getElementById("tool-caesar-shift");
-  const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
-  const resultEl = document.getElementById("tool-caesar-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-// 【演習画面用】 Caesar デコード
+// Caesar ＆ Atbash 実行・変換ロジック
 function runInlineCaesar() {
   const input = document.getElementById("inline-caesar-input").value;
   const shiftSelect = document.getElementById("inline-caesar-shift");
   const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
-  const resultEl = document.getElementById("inline-caesar-result");
   if (!input) return;
-  resultEl.textContent = `結果: ${decodeCaesarLogic(input, shift)}`;
-  resultEl.style.color = "#00ffcc";
+  showResult("inline-caesar-result", decodeCaesarLogic(input, shift), false);
 }
 
-// 【独立画面用】 Atbash デコード
-function runAtbash() {
-  const input = document.getElementById("tool-atbash-input").value;
-  const resultEl = document.getElementById("tool-atbash-result");
-  if (!input) return;
-  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
-  resultEl.style.color = "#00ffcc";
-}
-
-// 【演習画面用】 Atbash デコード
 function runInlineAtbash() {
   const input = document.getElementById("inline-atbash-input").value;
-  const resultEl = document.getElementById("inline-atbash-result");
   if (!input) return;
-  resultEl.textContent = `結果: ${decodeAtbashLogic(input)}`;
-  resultEl.style.color = "#00ffcc";
+  showResult("inline-atbash-result", decodeAtbashLogic(input), false);
 }
 
-// Caesar 共通変換ロジック
 function decodeCaesarLogic(input, shift) {
   return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
@@ -322,7 +310,6 @@ function decodeCaesarLogic(input, shift) {
   });
 }
 
-// Atbash 共通変換ロジック
 function decodeAtbashLogic(input) {
   return input.replace(/[a-zA-Z]/g, (char) => {
     const code = char.charCodeAt(0);
@@ -336,9 +323,137 @@ function decodeAtbashLogic(input) {
   });
 }
 
+// Vigenere デコード処理
+function runInlineVigenere() {
+  const input = document.getElementById("inline-vigenere-input").value.trim();
+  const key = document.getElementById("inline-vigenere-key").value.trim();
+  if (!input) return;
+  if (!key) {
+    showResult("inline-vigenere-result", "鍵(Key)を入力してください", true);
+    return;
+  }
+  showResult("inline-vigenere-result", decodeVigenereLogic(input, key), false);
+}
 
-// 結果表示関数
+function decodeVigenereLogic(cipherText, key) {
+  let result = "";
+  let keyIndex = 0;
+  const cleanKey = key.toUpperCase();
 
+  for (let i = 0; i < cipherText.length; i++) {
+    let charCode = cipherText.charCodeAt(i);
+    if (charCode >= 65 && charCode <= 90) {
+      let shift = cleanKey.charCodeAt(keyIndex % cleanKey.length) - 65;
+      result += String.fromCharCode(((charCode - 65 - shift + 26) % 26) + 65);
+      keyIndex++;
+    } else if (charCode >= 97 && charCode <= 122) {
+      let shift = cleanKey.charCodeAt(keyIndex % cleanKey.length) - 65;
+      result += String.fromCharCode(((charCode - 97 - shift + 26) % 26) + 97);
+      keyIndex++;
+    } else {
+      result += cipherText[i];
+    }
+  }
+  return result;
+}
+
+// URL デコード処理
+function runInlineUrl() {
+  const input = document.getElementById("inline-url-input").value.trim();
+  if (!input) return;
+  try {
+    showResult("inline-url-result", decodeURIComponent(input), false);
+  } catch(e) {
+    showResult("inline-url-result", "デコード失敗", true);
+  }
+}
+
+// HTML デコード処理
+function runInlineHtml() {
+  const input = document.getElementById("inline-html-input").value.trim();
+  if (!input) return;
+  const doc = new DOMParser().parseFromString(input, 'text/html');
+  showResult("inline-html-result", doc.body.textContent, false);
+}
+
+// Hash (MD5 / SHA1 / SHA256) 識別処理
+function runInlineHash() {
+  const input = document.getElementById("inline-hash-input").value.trim();
+  if (!input) return;
+  showResult("inline-hash-result", identifyHashLogic(input), false);
+}
+
+function identifyHashLogic(hash) {
+  const cleanHash = hash.replace(/\s+/g, '');
+  const len = cleanHash.length;
+  const isHex = /^[a-fA-F0-9]+$/.test(cleanHash);
+
+  if (!isHex) return "エラー: 16進数文字列ではありません";
+
+  switch (len) {
+    case 32:  return "識別結果: MD5 (32文字 / 128bit)";
+    case 40:  return "識別結果: SHA-1 (40文字 / 160bit)";
+    case 64:  return "識別結果: SHA-256 (64文字 / 256bit)";
+    default:  return `該当なし (${len}文字のハッシュ値です)`;
+  }
+}
+
+// 【独立画面用】統合実行処理
+function runSelectedMainTool() {
+  const tool = document.getElementById('tool-select').value;
+  const input = document.getElementById('tool-input').value.trim();
+  const imgElement = document.getElementById('tool-main-img');
+
+  if (imgElement) imgElement.style.display = 'none';
+
+  if (!input) {
+    showResult('tool-main-result', '入力が空です', true);
+    return;
+  }
+
+  try {
+    switch (tool) {
+      case 'base64':
+        decodeBase64Logic('tool-input', 'tool-main-result', 'tool-main-img');
+        break;
+      case 'hex':
+        decodeHexLogic('tool-input', 'tool-main-result');
+        break;
+      case 'binary':
+        decodeBinaryLogic('tool-input', 'tool-main-result');
+        break;
+      case 'caesar':
+        const shift = parseInt(document.getElementById('tool-caesar-shift-select').value, 10);
+        showResult('tool-main-result', decodeCaesarLogic(input, shift), false);
+        break;
+      case 'atbash':
+        showResult('tool-main-result', decodeAtbashLogic(input), false);
+        break;
+      case 'vigenere':
+        const key = document.getElementById('tool-vigenere-key').value.trim();
+        if (!key) {
+          showResult('tool-main-result', '鍵(Key)を入力してください', true);
+          return;
+        }
+        showResult('tool-main-result', decodeVigenereLogic(input, key), false);
+        break;
+      case 'url':
+        showResult('tool-main-result', decodeURIComponent(input), false);
+        break;
+      case 'html':
+        const doc = new DOMParser().parseFromString(input, 'text/html');
+        showResult('tool-main-result', doc.body.textContent, false);
+        break;
+      case 'hash':
+        showResult('tool-main-result', identifyHashLogic(input), false);
+        break;
+    }
+  } catch(e) {
+    showResult('tool-main-result', '処理に失敗しました', true);
+  }
+}
+
+// 結果表示用 共通関数
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
@@ -351,9 +466,7 @@ function showResult(resultId, message, isError) {
   }
 }
 
-
 // 問題一覧の自動生成
-
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
   if (!listContainer) return;
@@ -378,12 +491,10 @@ function createQuestionList() {
   });
 }
 
-
 // 一覧から問題を選択
-
 function selectQuestion(index) {
   currentQuestion = index; 
-  showQuestion();          
+  showQuestion();           
   document.getElementById("result").textContent = "";
   document.getElementById("answer").value = "";
   showScreen("play-screen"); 
