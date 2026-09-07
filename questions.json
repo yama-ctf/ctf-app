@@ -38,7 +38,7 @@
   {
     "question": "40桁のハッシュ値『aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d』を出力したハッシュアルゴリズム（識別名）を答えよ。",
     "hint": "160ビット（40桁の16進数）のハッシュ値です。",
-    "answer": "SHA1",
+    "answer": "SHA1","SHA-1",
     "difficulty": 120
   },
   {
