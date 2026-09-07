@@ -119,15 +119,26 @@ function checkAnswer() {
     return;
   }
 
-  let userAnswer = document.getElementById("answer").value.trim();
+  let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
 
-  if (userAnswer === lastSubmittedAnswer) {
-    return; 
+  // ──────────────────────────────────────────
+  // 正解判定ロジックの判定（複数回答対応）
+  // ──────────────────────────────────────────
+  let isCorrect = false;
+
+  if (Array.isArray(q.answer)) {
+    // answerが配列の場合：どれか1つでも一致すれば正解
+    isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer);
+  } else {
+    // answerが単一の文字列の場合
+    isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer);
   }
-  lastSubmittedAnswer = userAnswer;
 
-  let correctAnswer = q.answer;
-  let result = document.getElementById("result");
+  if (isCorrect) {  
+    result.textContent = "正解！";
+    result.style.color = "#00ffcc"; 
+    
+    // ...以降の正解時処理（レート計算など）はそのまま...
   
   userAttempts++;
 
