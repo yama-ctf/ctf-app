@@ -119,59 +119,71 @@ function checkAnswer() {
     return;
   }
 
-  let userAnswer = document.getElementById("answer").value.trim();
-  if (userAnswer === lastSubmittedAnswer) {
-    return;    
-  }   
-  lastSubmittedAnswer = userAnswer;    
-  let correctAnswer = q.answer;   
-  let result = document.getElementById("result");
-  userAttempts++;
+ // 1. 入力値の取得
+let userAnswer = document.getElementById("answer").value.trim();
 
-  const rProblem = Number(q.difficulty) || 1200;
-  const rUser = userRate;
-  const K = 32; 
+// 連投防止（※不正解時に再送信できるよう、判定フラグ管理へ変更を推奨）
+if (userAnswer === lastSubmittedAnswer) {
+  return;    
+}   
+lastSubmittedAnswer = userAnswer;    
 
-  const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
-  let rateChange = 0;
+let result = document.getElementById("result");
+userAttempts++;
 
-  if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {  
-    result.textContent = "正解！";
-    result.style.color = "#00ffcc"; 
+// イロレーティング計算用
+const rProblem = Number(q.difficulty) || 1200;
+const rUser = userRate;
+const K = 32; 
+const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
+let rateChange = 0;
 
-    userSolved++;
-    q.isCleared = true;
-
-    rateChange = Math.round(K * (1 - expectedScore));
-    if (rateChange < 2) rateChange = 2; 
-
-    userRate += rateChange;
-    currentQuestion++;
-    lastSubmittedAnswer = "";
-
-    if (currentQuestion < questions.length) {
-      showQuestion();
-      document.getElementById("answer").value = "";
-    } else {
-      document.getElementById("question").textContent = "全問クリア！";
-      document.getElementById("answer").value = "";
-    }
-  } else {
-    result.textContent = "不正解";
-    result.style.color = "#ef4444"; 
-    
-    rateChange = Math.round(K * (0 - expectedScore));
-    if (rateChange > -2) rateChange = -2; 
-
-    userRate += rateChange; 
-
-    if (userRate < 0) {
-      userRate = 0;
-    }
-  }
-  updateStatusDOM();
+// 2. 複数回答（配列）に対応した正解判定
+let isCorrect = false;
+if (Array.isArray(q.answer)) {
+  isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
+} else {
+  isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
 }
 
+// 3. 正解・不正解の分岐処理
+if (isCorrect) {  
+  result.textContent = "正解！";
+  result.style.color = "#00ffcc"; 
+  userSolved++;
+
+  // レート上昇計算
+  rateChange = Math.round(K * (1 - expectedScore));
+  userRate += rateChange;
+
+  // UI・ステータス更新関数があれば実行
+  updateStatusUI(); 
+
+  // 【重要】正解後に画面遷移または次の問題をロードする処理
+  setTimeout(() => {
+    lastSubmittedAnswer = ""; // 送信ロックを解除
+    document.getElementById("answer").value = ""; // 入力欄をクリア
+    
+    // 次の問題へ進む、または画面を切り替える関数を呼び出す
+    // 例: showScreen('play-screen'); や nextQuestion();
+    if (typeof loadNextQuestion === "function") {
+      loadNextQuestion();
+    }
+  }, 1500); // 1.5秒後に実行
+
+} else {
+  result.textContent = "不正解...";
+  result.style.color = "#ef4444";
+
+  // レート下落計算
+  rateChange = Math.round(K * (0 - expectedScore));
+  userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
+  
+  updateStatusUI();
+  
+  // 不正解のときは再度試行できるようにロックを解除
+  lastSubmittedAnswer = ""; 
+}
 // Base64 デコード処理
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
