@@ -67,8 +67,13 @@
               <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
                 <option value="base64">Base64 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
+                <option value="binary">Binary (2進数) デコーダー</option>
                 <option value="caesar">Caesar デコーダー</option>
                 <option value="atbash">Atbash デコーダー</option>
+                <option value="vigenere">Vigenere デコーダー</option>
+                <option value="url">URL デコーダー</option>
+                <option value="html">HTML デコーダー</option>
+                <option value="hash">ハッシュ識別 (MD5/SHA1/SHA256)</option>
               </select>
             </div>
 
@@ -91,12 +96,21 @@
               <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
+            <!-- Binaryエリア -->
+            <div id="inline-binary-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-binary-input" class="tool-input" placeholder="例: 01001000 01100101">
+                <button class="exercise-submit-btn" onclick="runInlineBinary()">デコード</button>
+              </div>
+              <p id="inline-binary-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
             <!-- Caesarエリア -->
             <div id="inline-caesar-area" style="display: none;">
               <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="text" id="inline-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
                 <select id="inline-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;">
-                  <!-- JSで動的生成されます -->
+                  <!-- JSで動的生成 -->
                 </select>
                 <button class="exercise-submit-btn" onclick="runInlineCaesar()">デコード</button>
               </div>
@@ -111,6 +125,44 @@
               </div>
               <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
+
+            <!-- Vigenereエリア -->
+            <div id="inline-vigenere-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="inline-vigenere-input" class="tool-input" placeholder="暗号文を入力">
+                <input type="text" id="inline-vigenere-key" class="tool-input" placeholder="鍵 (Key) を入力" style="max-width: 150px;">
+                <button class="exercise-submit-btn" onclick="runInlineVigenere()">デコード</button>
+              </div>
+              <p id="inline-vigenere-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+            <!-- URLエリア -->
+            <div id="inline-url-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-url-input" class="tool-input" placeholder="例: %48%65%6c%6c%6f">
+                <button class="exercise-submit-btn" onclick="runInlineUrl()">デコード</button>
+              </div>
+              <p id="inline-url-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+            <!-- HTMLエリア -->
+            <div id="inline-html-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-html-input" class="tool-input" placeholder="例: &amp;lt;script&amp;gt;">
+                <button class="exercise-submit-btn" onclick="runInlineHtml()">デコード</button>
+              </div>
+              <p id="inline-html-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+            <!-- Hash識別エリア -->
+            <div id="inline-hash-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-hash-input" class="tool-input" placeholder="ハッシュ値を入力 (MD5 / SHA1 / SHA256)">
+                <button class="exercise-submit-btn" onclick="runInlineHash()">識別</button>
+              </div>
+              <p id="inline-hash-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
           </div>
         </div>
       </div>
@@ -127,43 +179,44 @@
         <h1>解析ツール</h1>
         
         <div class="exercise-card" style="max-width: 600px;">
-          <h3>Base64 デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="independent-base64-input" class="tool-input" placeholder="デコードしたい文字列">
-            <button onclick="runIndependentBase64()" class="exercise-submit-btn">デコード</button>
-          </div>
-          <p id="independent-base64-result" style="font-weight: bold; margin: 0;"></p>
-          <img id="independent-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
-        </div>
-
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Hex (16進数) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="independent-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
-            <button onclick="runIndependentHex()" class="exercise-submit-btn">デコード</button>
-          </div>
-          <p id="independent-hex-result" style="font-weight: bold; margin: 0;"></p>
-        </div>
-
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Caesar (シーザー暗号) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="tool-caesar-input" class="tool-input" placeholder="暗号文を入力">
-            <select id="tool-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;">
-              <!-- JSで動的生成されます -->
+          <div style="margin-bottom: 16px;">
+            <label style="color: #94a3b8; display: block; margin-bottom: 8px; font-weight: bold;">使用するツールを選択:</label>
+            <select id="tool-select" onchange="switchMainTool()" style="padding: 10px; background-color: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 16px; width: 100%;">
+              <option value="base64">Base64 デコード</option>
+              <option value="hex">Hex (16進数) デコード</option>
+              <option value="binary">Binary (2進数) デコード</option>
+              <option value="caesar">Caesar (シーザー暗号) デコード</option>
+              <option value="atbash">Atbash (アトバシュ暗号) デコード</option>
+              <option value="vigenere">Vigenere (ヴィジュネル暗号) 解読</option>
+              <option value="url">URL デコード</option>
+              <option value="html">HTMLエンティティ デコード</option>
+              <option value="hash">ハッシュ値 識別 (MD5 / SHA1 / SHA256)</option>
             </select>
-            <button onclick="runCaesar()" class="exercise-submit-btn">デコード</button>
           </div>
-          <p id="tool-caesar-result" style="font-weight: bold; margin: 0;"></p>
-        </div>
 
-        <div class="exercise-card" style="max-width: 600px;">
-          <h3>Atbash (アトバシュ暗号) デコーダー</h3>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
-            <input type="text" id="tool-atbash-input" class="tool-input" placeholder="暗号文を入力">
-            <button onclick="runAtbash()" class="exercise-submit-btn">デコード</button>
+          <!-- 入力エリア -->
+          <div style="margin-bottom: 16px;">
+            <textarea id="tool-input" rows="4" class="tool-input" style="width: 100%; box-sizing: border-box;" placeholder="変換したい文字列を入力..."></textarea>
           </div>
-          <p id="tool-atbash-result" style="font-weight: bold; margin: 0;"></p>
+
+          <!-- オプション入力（シフト数や鍵） -->
+          <div id="tool-extra-caesar" style="display: none; margin-bottom: 16px;">
+            <label style="color: #94a3b8; margin-right: 10px;">シフト量:</label>
+            <select id="tool-caesar-shift-select" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;"></select>
+          </div>
+
+          <div id="tool-extra-vigenere" style="display: none; margin-bottom: 16px;">
+            <input type="text" id="tool-vigenere-key" class="tool-input" placeholder="鍵 (Key) を入力">
+          </div>
+
+          <!-- 実行ボタン -->
+          <button onclick="runSelectedMainTool()" class="exercise-submit-btn" style="width: 100%; font-weight: bold; margin-bottom: 16px;">実行</button>
+
+          <!-- 結果表示エリア -->
+          <div>
+            <p id="tool-main-result" style="font-family: monospace; background-color: #111827; padding: 12px 16px; border-radius: 6px; border: 1px solid #1f2937; min-height: 24px; color: #00ffcc; word-break: break-all; margin: 0;"></p>
+            <img id="tool-main-img" style="margin-top: 10px; max-width: 100%; display: none;">
+          </div>
         </div>
       </div>
 
