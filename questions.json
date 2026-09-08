@@ -1,34 +1,34 @@
 [
   {
     "question": "SGVsbG8= をデコードせよ",
-    "hint":"base64",
+    "hint": "base64",
     "answer": "Hello",
     "difficulty": 100
   },
   {
     "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
-    "ihnt":"Hex",
+    "hint": "Hex",
     "answer": "CTF",
     "difficulty": 300
   },
   {
     "question": "画像からフラグを見つけ出せ！（※これは次のステップの予告です）",
-    "hint":"元気に解こう",
+    "hint": "元気に解こう",
     "answer": "flag{clear}",
     "difficulty": 500
   },
-   {
+  {
     "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
-    "ihnt":"Hex",
+    "hint": "Hex",
     "answer": "CTF",
     "difficulty": 300
   },
-   {
+  {
     "question": "文字列『43 54 46』をHex(16進数)デコードせよ",
-    "ihnt":"Hex",
+    "hint": "Hex",
     "answer": "CTF",
     "difficulty": 300
-   },
+  },
   {
     "question": "32桁のハッシュ値『5d41402abc4b2a76b9719d911017c592』を出力したハッシュアルゴリズム（識別名）を答えよ。",
     "hint": "128ビット（32桁の16進数）のハッシュ値です。",
@@ -38,7 +38,7 @@
   {
     "question": "40桁のハッシュ値『aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d』を出力したハッシュアルゴリズム（識別名）を答えよ。",
     "hint": "160ビット（40桁の16進数）のハッシュ値です。",
-    "answer": ["SHA1","SHA-1,"sha1","sha-1"]
+    "answer": ["SHA1", "SHA-1", "sha1", "sha-1"],
     "difficulty": 120
   },
   {
