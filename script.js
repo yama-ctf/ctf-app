@@ -34,6 +34,16 @@ function toggleDropdown() {
   }
 }
 
+// 【追加】簡易解析ツールのパネルが開いている場合、
+// 中身の高さが変わった後（デコード結果の表示・画像表示など）に
+// max-heightを再計算して、結果が見切れないようにする関数
+function refreshDropdownHeight() {
+  const dropdown = document.getElementById('tools-dropdown');
+  if (dropdown && dropdown.style.maxHeight && dropdown.style.maxHeight !== '0px') {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+  }
+}
+
 // 簡易解析ツールの切り替え関数（全ツール対応版）
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
@@ -57,9 +67,7 @@ function switchInlineTool() {
   }
 
   // アコーディオンの高さ自動調整
-  if (dropdown && dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight) {
-    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-  }
+  refreshDropdownHeight();
 }
 
 // 独立画面ツールの表示切替関数
@@ -192,7 +200,7 @@ function checkAnswer() {
     // 不正解のときは再度試行できるようにロックを解除
     lastSubmittedAnswer = ""; 
   }
-} // ← この閉じカッコが欠落していました
+}
 
 // Base64 デコード処理
 function runBase64() {
@@ -231,6 +239,8 @@ function decodeBase64Logic(inputId, resultId, imgId) {
       if (resultImg) {
         resultImg.src = `data:${mimeType};base64,${input}`;
         resultImg.style.display = "block"; 
+        // 画像は読み込み完了後に高さが変わるため、読み込み後にも再計算する
+        resultImg.onload = refreshDropdownHeight;
       }
       showResult(resultId, '画像のデコードに成功しました！', false);
     } else {
@@ -483,6 +493,10 @@ function showResult(resultId, message, isError) {
       resultElement.style.color = "#00ffcc"; 
     }
   }
+
+  // 【追加】簡易解析ツール（アコーディオン）内の結果が更新された場合、
+  // パネルの高さが古いままだと見切れてしまうので、開いていれば高さを再計算する
+  refreshDropdownHeight();
 }
 
 // 問題一覧の自動生成
