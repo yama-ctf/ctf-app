@@ -40,7 +40,7 @@ function toggleDropdown() {
 function refreshDropdownHeight() {
   const dropdown = document.getElementById('tools-dropdown');
   if (dropdown && dropdown.style.maxHeight && dropdown.style.maxHeight !== '0px') {
-    dropdown.style.maxHeight == 500'px';
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
   }
 }
 
