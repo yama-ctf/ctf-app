@@ -366,23 +366,54 @@ function runInlineVigenere() {
 
 function decodeVigenereLogic(cipherText, key) {
   let result = "";
-  let keyIndex = 0;
   const cleanKey = key.toUpperCase();
-
+  
+  // 【手順1】鍵を暗号文の長さに合わせる
+  // 記号の部分には空白を入れるなどして、暗号文と1対1で対応する長い鍵文字列を作る
+  let extendedKey = "";
+  let keyIndex = 0;
   for (let i = 0; i < cipherText.length; i++) {
     let charCode = cipherText.charCodeAt(i);
-    if (charCode >= 65 && charCode <= 90) {
-      let shift = cleanKey.charCodeAt(keyIndex % cleanKey.length) - 65;
-      result += String.fromCharCode(((charCode - 65 - shift + 26) % 26) + 65);
-      keyIndex++;
-    } else if (charCode >= 97 && charCode <= 122) {
-      let shift = cleanKey.charCodeAt(keyIndex % cleanKey.length) - 65;
-      result += String.fromCharCode(((charCode - 97 - shift + 26) % 26) + 97);
+    // アルファベットの場合だけ鍵を進める
+    if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+      extendedKey += cleanKey[keyIndex % cleanKey.length];
       keyIndex++;
     } else {
+      extendedKey += " "; // 記号や数字の位置にはダミーの空白を入れておく
+    }
+  }
+
+  // 暗号文を1文字ずつ処理する
+  for (let i = 0; i < cipherText.length; i++) {
+    let charCode = cipherText.charCodeAt(i);
+
+    // アルファベット（大文字・小文字）の場合
+    if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+      
+      // 大文字か小文字かの基準値（A=65, a=97）
+      let base = (charCode >= 65 && charCode <= 90) ? 65 : 97;
+
+      // 【手順2】文字を数値に変換する (A/a=0, B/b=1... Z/z=25)
+      let cipherNum = charCode - base;
+      let keyNum = extendedKey.charCodeAt(i) - 65; // extendedKeyは全て大文字(65)
+
+      // 【手順3】引き算をして元の数値を出す
+      let plainNum = cipherNum - keyNum;
+      
+      // マイナス（0未満）になった場合は、26を足す
+      if (plainNum < 0) {
+        plainNum += 26;
+      }
+
+      // 【手順4】数値を文字に戻す
+      result += String.fromCharCode(plainNum + base);
+
+    } else {
+      // 記号や数字の場合はそのまま追加する
       result += cipherText[i];
     }
   }
+
   return result;
 }
 
