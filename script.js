@@ -3,7 +3,7 @@ let currentQuestion = 0;
 
 // ステータスを記録するための変数
 let userRate = 1000;    
-let userSolved = 0;     
+let userSolved = 0;     //
 let userAttempts = 0;   //試行回数
 let lastSubmittedAnswer = ""; 
 
