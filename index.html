@@ -58,6 +58,21 @@
         <!-- 簡易解析ツール（ドロップダウン） -->
         <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
           <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
+           
+            <!-- ヒントアコーディオンパネル -->
+          <div class="hint-accordion">
+            <button type="button" class="hint-header" onclick="toggleHint()">
+              <span class="hint-title">💡 ヒントを表示</span>
+              <span id="hint-icon" class="hint-icon">▼</span>
+            </button>
+            <div id="hint-content" class="hint-content">
+              <div class="hint-inner">
+                <p id="hint-text">問題を選択するとヒントが表示されます。</p>
+              </div>
+            </div>
+          </div>
+          </div>
+        
             🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
           </button>
           
