@@ -245,3 +245,55 @@ html, body {
   border-radius: 4px;
   font-family: monospace;
 }
+/* ヒントアコーディオンのスタイル */
+.hint-accordion {
+  margin-bottom: 15px;
+  background-color: #121824;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hint-header {
+  width: 100%;
+  padding: 10px 15px;
+  background-color: #1a2332;
+  color: #00f3ff; /* サイバー感のあるシアン */
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.hint-header:hover {
+  background-color: #243044;
+}
+
+.hint-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+/* 開閉アニメーション領域 */
+.hint-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+  background-color: #0d1117;
+}
+
+.hint-content.open {
+  transition: max-height 0.3s ease-in-out;
+}
+
+.hint-inner {
+  padding: 12px 15px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  border-top: 1px solid #1e293b;
+}
