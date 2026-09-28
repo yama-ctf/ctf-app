@@ -3,7 +3,7 @@ let currentQuestion = 0;
 
 // ステータスを記録するための変数
 let userRate = 1000;    
-let userSolved = 0;     //
+let userSolved = 0;     // ユーザーが解けた問題数
 let userAttempts = 0;   //試行回数
 let lastSubmittedAnswer = ""; 
 
@@ -118,7 +118,7 @@ function updateStatusDOM() {
 
   let accuracy = 0;
   if (userAttempts > 0) {
-    accuracy = Math.round((userSolved / userAttempts) * 100); 
+    accuracy = Math.round((userSolved / userAttempts) * 100); //正答率計算
   }
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 
