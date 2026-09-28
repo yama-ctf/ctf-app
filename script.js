@@ -20,6 +20,41 @@ function showScreen(screenId) {
   }
 }
 
+// アコーディオンの開閉処理（scrollHeightを活用）
+function toggleHint() {
+  const content = document.getElementById("hint-content");
+  const icon = document.getElementById("hint-icon");
+
+  if (content.classList.contains("open")) {
+    content.style.maxHeight = "0px";
+    content.classList.remove("open");
+    icon.style.transform = "rotate(0deg)";
+  } else {
+    content.classList.add("open");
+    content.style.maxHeight = content.scrollHeight + "px";
+    icon.style.transform = "rotate(180deg)";
+  }
+}
+
+// 問題が読み込まれた時にヒントテキストを差し替える関数
+function loadQuestionHint(questionData) {
+  const hintTextEl = document.getElementById("hint-text");
+  const content = document.getElementById("hint-content");
+  const icon = document.getElementById("hint-icon");
+
+  // ヒント内容の更新
+  if (questionData && questionData.hint) {
+    hintTextEl.textContent = questionData.hint;
+  } else {
+    hintTextEl.textContent = "この問題にはヒントがありません。";
+  }
+
+  // 新しい問題に切り替わった時はヒントを自動で閉じる
+  content.style.maxHeight = "0px";
+  content.classList.remove("open");
+  icon.style.transform = "rotate(0deg)";
+}
+
 // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
