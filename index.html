@@ -47,6 +47,22 @@
           </div>
           <div class="exercise-body">
             <p id="question">問題が表示されます</p>
+            
+            <!-- ========================================== -->
+            <!-- 【追加】ヒント機能のドロップダウンエリア -->
+            <!-- ========================================== -->
+            <div style="margin-top: 15px;">
+              <button onclick="toggleHint()" style="background: none; border: none; color: #facc15; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; padding: 0; font-size: 14px; outline: none;">
+                💡 ヒントを見る
+              </button>
+              <div id="hint-panel" style="max-height: 0px; overflow: hidden; transition: max-height 0.3s ease;">
+                <div style="padding: 12px; margin-top: 10px; background-color: #1e293b; border-left: 4px solid #facc15; border-radius: 4px;">
+                  <p id="hint-text" style="color: #cbd5e1; font-size: 14px; margin: 0; line-height: 1.5;"></p>
+                </div>
+              </div>
+            </div>
+            <!-- ========================================== -->
+
           </div>
         </div>
         <div class="exercise-input-group">
