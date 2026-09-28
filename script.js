@@ -163,7 +163,7 @@ function checkAnswer() {
 
   // 同じ解答の連続送信ガード（文字を書き換えるまで連打による減点を防ぐ）
   if (userAnswer === lastSubmittedAnswer) {
-    document.getElementById("result").textContent = "同じ解答がすでに送信されています。";
+    document.getElementById("result").textContent = "同じ解答がすでに送信されています。";　　//これがいいんよ
     document.getElementById("result").style.color = "#facc15";
     return;    
   }   
