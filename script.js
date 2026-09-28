@@ -4,8 +4,9 @@ let currentQuestion = 0;
 // ステータスを記録するための変数
 let userRate = 1000;    
 let userSolved = 0;     // ユーザーが解けた問題数
-let userAttempts = 0;   //試行回数
+let userAttempts = 0;   // 試行回数
 let lastSubmittedAnswer = ""; 
+let isSubmitting = false; // 【連打防止】送信処理中フラグ
 
 // 画面切り替え関数
 function showScreen(screenId) {
@@ -97,12 +98,16 @@ function showQuestion() {
   document.getElementById("difficulty").textContent = "難易度: " + q.difficulty;
   document.getElementById("question").textContent = q.question;
 
-  // 【新規追加】問題が表示されるタイミングでヒント内容も更新する
+  // 問題が表示されるタイミングでヒント内容も更新する
   updateHintData(q);
 }
 
 // 次の問題をロードする関数
 function loadNextQuestion() {
+  // 送信関連のフラグを初期化
+  lastSubmittedAnswer = "";
+  isSubmitting = false;
+
   if (currentQuestion + 1 < questions.length) {
     currentQuestion++;
     showQuestion();
@@ -121,7 +126,7 @@ function updateStatusDOM() {
 
   let accuracy = 0;
   if (userAttempts > 0) {
-    accuracy = Math.round((userSolved / userAttempts) * 100); //正答率計算
+    accuracy = Math.round((userSolved / userAttempts) * 100); // 正答率計算
   }
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 
@@ -132,9 +137,12 @@ function updateStatusDOM() {
   if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
 }
 
-// 正解判定（Eloレーティング ＆ 連打対策版）
+// 正解判定（Eloレーティング ＆ 連打対策完全修正版）
 function checkAnswer() {
   if (questions.length === 0 || currentQuestion >= questions.length) return;
+
+  // 1. 連打・処理中ガード
+  if (isSubmitting) return;
 
   let q = questions[currentQuestion];
   if (q.isCleared) {
@@ -143,14 +151,25 @@ function checkAnswer() {
     return;
   }
 
-  // 1. 入力値の取得
+  // 2. 入力値の取得
   let userAnswer = document.getElementById("answer").value.trim();
 
-  // 連投防止
+  // 空入力のガード（未入力での減点を防ぐ）
+  if (!userAnswer) {
+    document.getElementById("result").textContent = "フラグを入力してください。";
+    document.getElementById("result").style.color = "#facc15";
+    return;
+  }
+
+  // 同じ解答の連続送信ガード（文字を書き換えるまで連打による減点を防ぐ）
   if (userAnswer === lastSubmittedAnswer) {
+    document.getElementById("result").textContent = "同じ解答がすでに送信されています。";
+    document.getElementById("result").style.color = "#facc15";
     return;    
   }   
-  lastSubmittedAnswer = userAnswer;    
+
+  isSubmitting = true; // 送信処理ロック開始
+  lastSubmittedAnswer = userAnswer; // 今回の解答を記憶   
 
   let result = document.getElementById("result");
   userAttempts++;
@@ -162,7 +181,7 @@ function checkAnswer() {
   const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
   let rateChange = 0;
 
-  // 2. 複数回答（配列）に対応した正解判定
+  // 3. 複数回答（配列）に対応した正解判定
   let isCorrect = false;
   if (Array.isArray(q.answer)) {
     isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
@@ -170,7 +189,7 @@ function checkAnswer() {
     isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
   }
 
-  // 3. 正解・不正解の分岐処理
+  // 4. 正解・不正解の分岐処理
   if (isCorrect) {  
     result.textContent = "正解！";
     result.style.color = "#00ffcc"; 
@@ -185,9 +204,8 @@ function checkAnswer() {
 
     // 【重要】正解後に次の問題をロードする処理
     setTimeout(() => {
-      lastSubmittedAnswer = ""; // 送信ロックを解除
       document.getElementById("answer").value = ""; // 入力欄をクリア
-      loadNextQuestion(); // 次の問題へ進む
+      loadNextQuestion(); // 次の問題へ進む（内部でフラグ初期化）
     }, 1500); // 1.5秒後に実行
 
   } else {
@@ -200,8 +218,11 @@ function checkAnswer() {
     
     updateStatusDOM(); // ステータスUI更新呼び出し
     
-    // 不正解のときは再度試行できるようにロックを解除
-    lastSubmittedAnswer = ""; 
+    // 不正解時は短時間（400ms）のクールダウン後にボタン押下のみ解除
+    // ※ lastSubmittedAnswer はクリアしないため、文字を修正するまで再送信での減点は一切発生しません
+    setTimeout(() => {
+      isSubmitting = false;
+    }, 400);
   }
 }
 
@@ -528,7 +549,7 @@ function showResult(resultId, message, isError) {
     }
   }
 
-  // 【追加】簡易解析ツール（アコーディオン）内の結果が更新された場合、
+  // 簡易解析ツール（アコーディオン）内の結果が更新された場合、
   // パネルの高さが古いままだと見切れてしまうので、開いていれば高さを再計算する
   refreshDropdownHeight();
 }
@@ -564,12 +585,10 @@ function selectQuestion(index) {
   showQuestion();            
   document.getElementById("result").textContent = "";
   document.getElementById("answer").value = "";
+  lastSubmittedAnswer = ""; // 連打防止記憶をリセット
+  isSubmitting = false; // 送信ロックリセット
   showScreen("play-screen"); 
 }
-
-// ==========================================
-// 【新規追加】ヒントパネル用の関数群
-// ==========================================
 
 // ヒントドロップダウンの開閉処理
 function toggleHint() {
