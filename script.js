@@ -96,6 +96,9 @@ function showQuestion() {
   let q = questions[currentQuestion];
   document.getElementById("difficulty").textContent = "難易度: " + q.difficulty;
   document.getElementById("question").textContent = q.question;
+
+  // 【新規追加】問題が表示されるタイミングでヒント内容も更新する
+  updateHintData(q);
 }
 
 // 次の問題をロードする関数
@@ -558,8 +561,46 @@ function createQuestionList() {
 // 一覧から問題を選択
 function selectQuestion(index) {
   currentQuestion = index; 
-  showQuestion();           
+  showQuestion();            
   document.getElementById("result").textContent = "";
   document.getElementById("answer").value = "";
   showScreen("play-screen"); 
+}
+
+// ==========================================
+// 【新規追加】ヒントパネル用の関数群
+// ==========================================
+
+// ヒントドロップダウンの開閉処理
+function toggleHint() {
+  const panel = document.getElementById("hint-panel");
+  if (!panel) return;
+
+  if (panel.classList.contains("open")) {
+    panel.style.maxHeight = "0px";
+    panel.classList.remove("open");
+  } else {
+    panel.classList.add("open");
+    // scrollHeightを使ってコンテンツの高さ分だけ展開
+    panel.style.maxHeight = panel.scrollHeight + "px";
+  }
+}
+
+// 新しい問題が読み込まれた時に呼び出す関数
+function updateHintData(questionData) {
+  const hintText = document.getElementById("hint-text");
+  const panel = document.getElementById("hint-panel");
+  
+  if (!hintText || !panel) return;
+
+  // JSONデータからヒントテキストを更新
+  if (questionData && questionData.hint) {
+    hintText.innerHTML = questionData.hint;
+  } else {
+    hintText.innerHTML = "この問題にヒントはありません。";
+  }
+
+  // 問題が切り替わった際は必ずドロップダウンを閉じた状態にリセットする
+  panel.style.maxHeight = "0px";
+  panel.classList.remove("open");
 }
