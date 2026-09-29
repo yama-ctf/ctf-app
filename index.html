@@ -276,6 +276,22 @@
 
         <div class="exercise-card">
           <div class="exercise-header">
+            <h3 style="color: #38bdf8;">💻 Binary（2進数表記）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> コンピュータの最小単位である**「0」と「1」だけ**で表現されたデータです。ASCIIコードでは、通常8桁（1バイト）のペアで1つのアルファベットや記号を表します。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li><code style="color: #00ffcc;">01000001</code> のように、「0」と「1」しか出現しないのが最大の特徴。</li>
+              <li>8桁（または8の倍数の桁数）ごとにスペースで区切られていることが多い。</li>
+              <li>CTFでは、通信の生データ解析やシリアル通信のキャプチャデータなどで頻出します。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
             <h3 style="color: #38bdf8;">🏛️ Caesar 暗号（シーザー暗号）</h3>
             <span class="exercise-difficulty">頻出度: ★★☆</span>
           </div>
@@ -304,6 +320,68 @@
         </div>
       </div>
 
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🗝️ Vigenere 暗号（ヴィジュネル暗号）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> 「鍵（Key）」となるキーワードの各文字を使って、アルファベットのずらし量を文字ごとに変化させる古典的な多表式暗号です。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>暗号文と同時に「KEY」や「SECRET」といった文字列（鍵）が与えられるのが特徴。</li>
+              <li>シーザー暗号と異なり、同じ文字でも位置によって異なる文字に暗号化されるため解読が少し複雑になります。</li>
+              <li>記号（<code style="color: #00ffcc;">_</code> や <code style="color: #00ffcc;">{</code> など）はシフト処理を行わず、鍵の進みもスキップするのが標準的なルールです。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🌐 URLエンコード（パーセントエンコーディング）</h3>
+            <span class="exercise-difficulty">頻出度: ★★★</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> Webブラウザのアドレスバーなどで、スペースや特殊文字を安全に送信するために**「% + 16進数2桁」**に変換する方式です。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>文字列の中に <code style="color: #00ffcc;">%20</code> や <code style="color: #00ffcc;">%48%65%6c</code> のように <code style="color: #00ffcc;">%</code> が連続して出現するのが目印。</li>
+              <li>Webセキュリティの分野（SQLインジェクションやXSSなどの攻撃ペイロード分析）で頻繁に遭遇します。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🏷️ HTMLエンティティ（実体参照）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> Webページ上でタグとして誤認される可能性のある記号（<code style="color: #00ffcc;">&lt;</code> や <code style="color: #00ffcc;">&gt;</code> など）を、安全に画面表示するために特殊な文字列へとエスケープする形式です。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>先頭が <code style="color: #00ffcc;">&</code>（アンパサンド）で始まり、末尾が <code style="color: #00ffcc;">;</code>（セミコロン）で終わるのが基本形（例: <code style="color: #00ffcc;">&amp;lt;</code> = <code style="color: #00ffcc;">&lt;</code>）。</li>
+              <li>Webサイトのソースコードを読み解くCTF問題（Webジャンル）でよく出題されます。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🔒 暗号学的ハッシュ値（Hash）</h3>
+            <span class="exercise-difficulty">頻出度: ★★★</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> 入力データから固定長の不可逆な値を生成するアルゴリズムです。元データへの復元は基本的に不可能で、文字の長さ（桁数）でアルゴリズムを推測します。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li><strong>MD5:</strong> 32桁の16進数（128ビット）</li>
+              <li><strong>SHA-1:</strong> 40桁の16進数（160ビット）</li>
+              <li><strong>SHA-256:</strong> 64桁の16進数（256ビット）</li>
+              <li>16進数（0〜9, a〜f）のみで構成されており、桁数を見るだけで一発で識別できます。</li>
+            </ul>
+          </div>
+        </div>
       <!-- 6. セーブ・記録画面 -->
       <div id="save-screen" class="page-screen">
         <h1>セーブ・記録</h1>
