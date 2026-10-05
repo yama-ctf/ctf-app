@@ -228,6 +228,7 @@ function checkAnswer() {
     result.style.color = "#00ffcc"; 
     userSolved++;
     q.isCleared = true; // クリアフラグ
+    createQuestionList(); // ★追加: 問題一覧のクリア表示(✓)を更新
 
     // レート上昇計算
     rateChange = Math.round(K * (1 - expectedScore));
@@ -587,28 +588,49 @@ function showResult(resultId, message, isError) {
   refreshDropdownHeight();
 }
 
-// 問題一覧の自動生成
+// =====================================================================
+// ★【変更】問題一覧の自動生成
+//   変更前: 「Q 1 / 難易度」だけのグリッドボタン
+//   変更後: 目次風の縦リスト（番号・問題文プレビュー・難易度・クリア状況）
+// =====================================================================
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
   if (!listContainer) return;
-  listContainer.innerHTML = ""; 
+  listContainer.innerHTML = "";
+
+  // ★追加: index.html側のグリッド用インラインstyleを外し、CSS(.question-list)に任せる
+  listContainer.removeAttribute("style");
+  listContainer.className = "question-list";
 
   questions.forEach((q, index) => {
-    const btn = document.createElement("button");
-    btn.className = "nav-btn"; 
-    btn.style.backgroundColor = "#1e293b";
-    btn.style.border = "1px solid #334155";
-    btn.style.margin = "0"; 
-    
-    btn.innerHTML = `
-      <span style="color: #0ea5e9; font-weight: bold; font-size: 18px;">Q ${index + 1}</span><br>
-      <small style="color: #94a3b8;">難易度: ${q.difficulty}</small>
-    `;
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "question-row" + (q.isCleared ? " cleared" : "");
 
-    btn.onclick = function() {
+    // 番号（Q 1, Q 2 ...）
+    const label = document.createElement("span");
+    label.className = "question-row-label";
+    label.textContent = "Q " + (index + 1);
+
+    // 問題文プレビュー（最初の段落だけ。長い場合はCSSで2行に省略）
+    const text = document.createElement("span");
+    text.className = "question-row-text";
+    text.textContent = String(q.question).split("\n")[0];
+
+    // 目次の「……」にあたる点線
+    const leader = document.createElement("span");
+    leader.className = "question-row-leader";
+
+    // 難易度（クリア済みなら ✓ を付ける）
+    const meta = document.createElement("span");
+    meta.className = "question-row-meta";
+    meta.textContent = (q.isCleared ? "✓ " : "") + q.difficulty;
+
+    row.append(label, text, leader, meta);
+    row.onclick = function() {
       selectQuestion(index);
     };
-    listContainer.appendChild(btn);
+    listContainer.appendChild(row);
   });
 }
 
