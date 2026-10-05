@@ -102,14 +102,47 @@ function showQuestion() {
   updateHintData(q);
 }
 
-// 次の問題をロードする関数
+// =====================================================================
+// ★【追加】未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
+//   戻り値: 選ばれた問題の配列インデックス / 全問題クリア済みなら -1
+// =====================================================================
+function pickNextQuestionIndex() {
+  let bestDiff = Infinity;
+  let candidates = [];
+
+  questions.forEach((q, i) => {
+    if (q.isCleared) return; // クリア済みは除外
+
+    const diff = Math.abs((Number(q.difficulty) || 1200) - userRate);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      candidates = [i];
+    } else if (diff === bestDiff) {
+      candidates.push(i); // 同じ近さの問題は候補に追加
+    }
+  });
+
+  if (candidates.length === 0) return -1; // 全問題クリア済み
+
+  // 同じ近さの問題が複数ある場合はランダムに選ぶ
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// =====================================================================
+// ★【変更】次の問題をロードする関数
+//   変更前: currentQuestion++ で配列の次の問題へ進んでいた
+//   変更後: pickNextQuestionIndex() でレートに近い未クリア問題を選ぶ
+// =====================================================================
 function loadNextQuestion() {
   // 送信関連のフラグを初期化
   lastSubmittedAnswer = "";
   isSubmitting = false;
 
-  if (currentQuestion + 1 < questions.length) {
-    currentQuestion++;
+  // ★変更: 順番に進めるのをやめ、レート基準で次の問題を決定
+  const nextIndex = pickNextQuestionIndex();
+
+  if (nextIndex !== -1) {
+    currentQuestion = nextIndex;   // ★変更: currentQuestion++ から変更
     showQuestion();
     document.getElementById("result").textContent = "";
   } else {
@@ -205,7 +238,7 @@ function checkAnswer() {
     // 【重要】正解後に次の問題をロードする処理
     setTimeout(() => {
       document.getElementById("answer").value = ""; // 入力欄をクリア
-      loadNextQuestion(); // 次の問題へ進む（内部でフラグ初期化）
+      loadNextQuestion(); // 次の問題へ進む（★レートに近い未クリア問題を選択）
     }, 1500); // 1.5秒後に実行
 
   } else {
