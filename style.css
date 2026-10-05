@@ -245,3 +245,83 @@ html, body {
   border-radius: 4px;
   font-family: monospace;
 }
+
+
+/* ==========================================
+   ★【追加】7. 問題一覧画面（目次風リスト）
+   ========================================== */
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+  max-width: 800px;
+}
+
+/* 1問 = 1行 */
+.question-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #1f2937;
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.question-row:hover {
+  background-color: #1e293b;
+}
+
+/* 番号（Q 1） */
+.question-row-label {
+  flex: 0 0 56px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+/* 問題文プレビュー（2行まで表示して省略） */
+.question-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 点線（目次の「……」） */
+.question-row-leader {
+  flex: 0 1 60px;
+  min-width: 20px;
+  border-bottom: 1px dashed #334155;
+}
+
+/* 難易度 */
+.question-row-meta {
+  flex: 0 0 64px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: bold;
+  color: #94a3b8;
+}
+
+/* クリア済み */
+.question-row.cleared .question-row-label,
+.question-row.cleared .question-row-meta {
+  color: #00ffcc;
+}
+.question-row.cleared .question-row-text {
+  color: #64748b;
+}
