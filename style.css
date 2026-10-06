@@ -347,7 +347,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
-  max-width: 900px;
+  max-width: 1000px;
 }
 
 /* 1枚のタイル（クリックで即座に画面遷移） */
