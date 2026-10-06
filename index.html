@@ -41,8 +41,9 @@
         <h1>ホーム画面</h1>
         <p class="home-lead">ようこそ！遊びたいメニューを選んでください。</p>
 
-        <!-- セクション1：演習 -->
-        <h2 class="home-section-title">演習する</h2>
+        <!-- ★変更: 3枚 + 2枚の2セクションに再編成（各行が横幅いっぱいになる） -->
+        <!-- セクション1：演習・ツール（3枚） -->
+        <h2 class="home-section-title">演習・ツール</h2>
         <div class="home-grid">
           <button type="button" class="home-tile" onclick="showScreen('play-screen')">
             <span class="home-tile-icon">🎯</span>
@@ -54,27 +55,23 @@
             <span class="home-tile-name">問題一覧</span>
             <span class="home-tile-desc">好きな問題を選んで解く</span>
           </button>
-        </div>
-
-        <!-- セクション2：ツールと学習 -->
-        <h2 class="home-section-title">ツール・学習</h2>
-        <div class="home-grid">
           <button type="button" class="home-tile" onclick="showScreen('tool-screen')">
             <span class="home-tile-icon">🛠️</span>
             <span class="home-tile-name">解析ツール</span>
             <span class="home-tile-desc">Base64・Hex・シーザー暗号など</span>
           </button>
+        </div>
+
+        <!-- セクション2：学習・記録（2枚） -->
+        <h2 class="home-section-title">学習・記録</h2>
+        <div class="home-grid">
           <button type="button" class="home-tile" onclick="showScreen('commentary-screen')">
             <span class="home-tile-icon">📖</span>
             <span class="home-tile-name">解説・豆知識</span>
             <span class="home-tile-desc">暗号の特徴と見分け方</span>
           </button>
-        </div>
-
-        <!-- セクション3：記録 -->
-        <h2 class="home-section-title">記録</h2>
-        <div class="home-grid">
-          <button type="button" class="home-tile" onclick="showScreen('save-screen')">
+          <!-- ★変更: class に home-tile-wide を追加（2列分の幅。1段目の「問題一覧」の真下から右へ広がる） -->
+          <button type="button" class="home-tile home-tile-wide" onclick="showScreen('save-screen')">
             <span class="home-tile-icon">💾</span>
             <span class="home-tile-name">セーブ・記録</span>
             <span class="home-tile-desc">レートや正答率を確認する</span>
