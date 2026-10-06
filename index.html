@@ -31,11 +31,57 @@
         <div class="status-card"><div class="status-label">正答率</div><div class="status-value"><span id="user-accuracy">0%</span></div></div>
       </div>
       
-      <!-- 1. ホーム画面 -->
+      <!-- ================================================================ -->
+      <!-- ★【変更】1. ホーム画面                                            -->
+      <!--   変更前: 「ようこそ！メニューから選んでね。」の1行だけ             -->
+      <!--   変更後: タイルをクリックすると各画面へ即時に遷移するメニュー画面   -->
+      <!--   ※ 遷移は既存の showScreen() をそのまま使用（JSの変更は不要）      -->
+      <!-- ================================================================ -->
       <div id="home-screen" class="page-screen active">
         <h1>ホーム画面</h1>
-        <p>ようこそ！メニューから選んでね。</p>
+        <p class="home-lead">ようこそ！遊びたいメニューを選んでください。</p>
+
+        <!-- セクション1：演習 -->
+        <h2 class="home-section-title">演習する</h2>
+        <div class="home-grid">
+          <button type="button" class="home-tile" onclick="showScreen('play-screen')">
+            <span class="home-tile-icon">🎯</span>
+            <span class="home-tile-name">解析演習</span>
+            <span class="home-tile-desc">いまの問題に挑戦する</span>
+          </button>
+          <button type="button" class="home-tile" onclick="showScreen('list-screen')">
+            <span class="home-tile-icon">📋</span>
+            <span class="home-tile-name">問題一覧</span>
+            <span class="home-tile-desc">好きな問題を選んで解く</span>
+          </button>
+        </div>
+
+        <!-- セクション2：ツールと学習 -->
+        <h2 class="home-section-title">ツール・学習</h2>
+        <div class="home-grid">
+          <button type="button" class="home-tile" onclick="showScreen('tool-screen')">
+            <span class="home-tile-icon">🛠️</span>
+            <span class="home-tile-name">解析ツール</span>
+            <span class="home-tile-desc">Base64・Hex・シーザー暗号など</span>
+          </button>
+          <button type="button" class="home-tile" onclick="showScreen('commentary-screen')">
+            <span class="home-tile-icon">📖</span>
+            <span class="home-tile-name">解説・豆知識</span>
+            <span class="home-tile-desc">暗号の特徴と見分け方</span>
+          </button>
+        </div>
+
+        <!-- セクション3：記録 -->
+        <h2 class="home-section-title">記録</h2>
+        <div class="home-grid">
+          <button type="button" class="home-tile" onclick="showScreen('save-screen')">
+            <span class="home-tile-icon">💾</span>
+            <span class="home-tile-name">セーブ・記録</span>
+            <span class="home-tile-desc">レートや正答率を確認する</span>
+          </button>
+        </div>
       </div>
+      <!-- ★ ホーム画面の変更はここまで -->
 
       <!-- 2. 解析演習画面 -->
       <div id="play-screen" class="page-screen">
