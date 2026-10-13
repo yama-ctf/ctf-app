@@ -35,7 +35,7 @@ function toggleDropdown() {
   }
 }
 
-// 【追加】簡易解析ツールのパネルが開いている場合、
+// 簡易解析ツールのパネルが開いている場合、
 // 中身の高さが変わった後（デコード結果の表示・画像表示など）に
 // max-heightを再計算して、結果が見切れないようにする関数
 function refreshDropdownHeight() {
@@ -59,7 +59,6 @@ function switchInlineTool() {
     html: document.getElementById('inline-html-area'),
     hash: document.getElementById('inline-hash-area')
   };
-  const dropdown = document.getElementById('tools-dropdown');
 
   for (const key in areas) {
     if (areas[key]) {
@@ -81,11 +80,12 @@ function switchMainTool() {
   if (vigenereExtra) vigenereExtra.style.display = (tool === 'vigenere') ? 'block' : 'none';
 }
 
-// JSON読み込み
+// JSON読み込み ＆ セーブデータ復元
 fetch("questions.json")
   .then(response => response.json())
   .then(data => {
     questions = data;
+    loadSaveData();        // ★localStorageからデータを復元
     showQuestion();        
     createQuestionList();  
   })
@@ -102,10 +102,7 @@ function showQuestion() {
   updateHintData(q);
 }
 
-// =====================================================================
-// ★【追加】未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
-//   戻り値: 選ばれた問題の配列インデックス / 全問題クリア済みなら -1
-// =====================================================================
+// 未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
 function pickNextQuestionIndex() {
   let bestDiff = Infinity;
   let candidates = [];
@@ -118,31 +115,24 @@ function pickNextQuestionIndex() {
       bestDiff = diff;
       candidates = [i];
     } else if (diff === bestDiff) {
-      candidates.push(i); // 同じ近さの問題は候補に追加
+      candidates.push(i);
     }
   });
 
   if (candidates.length === 0) return -1; // 全問題クリア済み
 
-  // 同じ近さの問題が複数ある場合はランダムに選ぶ
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-// =====================================================================
-// ★【変更】次の問題をロードする関数
-//   変更前: currentQuestion++ で配列の次の問題へ進んでいた
-//   変更後: pickNextQuestionIndex() でレートに近い未クリア問題を選ぶ
-// =====================================================================
+// 次の問題をロードする関数
 function loadNextQuestion() {
-  // 送信関連のフラグを初期化
   lastSubmittedAnswer = "";
   isSubmitting = false;
 
-  // ★変更: 順番に進めるのをやめ、レート基準で次の問題を決定
   const nextIndex = pickNextQuestionIndex();
 
   if (nextIndex !== -1) {
-    currentQuestion = nextIndex;   // ★変更: currentQuestion++ から変更
+    currentQuestion = nextIndex;
     showQuestion();
     document.getElementById("result").textContent = "";
   } else {
@@ -159,7 +149,7 @@ function updateStatusDOM() {
 
   let accuracy = 0;
   if (userAttempts > 0) {
-    accuracy = Math.round((userSolved / userAttempts) * 100); // 正答率計算
+    accuracy = Math.round((userSolved / userAttempts) * 100);
   }
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 
@@ -170,11 +160,10 @@ function updateStatusDOM() {
   if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
 }
 
-// 正解判定（Eloレーティング ＆ 連打対策完全修正版）
+// 正解判定
 function checkAnswer() {
   if (questions.length === 0 || currentQuestion >= questions.length) return;
 
-  // 1. 連打・処理中ガード
   if (isSubmitting) return;
 
   let q = questions[currentQuestion];
@@ -184,37 +173,32 @@ function checkAnswer() {
     return;
   }
 
-  // 2. 入力値の取得
   let userAnswer = document.getElementById("answer").value.trim();
 
-  // 空入力のガード（未入力での減点を防ぐ）
   if (!userAnswer) {
     document.getElementById("result").textContent = "フラグを入力してください。";
     document.getElementById("result").style.color = "#facc15";
     return;
   }
 
-  // 同じ解答の連続送信ガード（文字を書き換えるまで連打による減点を防ぐ）
   if (userAnswer === lastSubmittedAnswer) {
-    document.getElementById("result").textContent = "同じ解答がすでに送信されています。";　　//これがいいんよ
+    document.getElementById("result").textContent = "同じ解答がすでに送信されています。";
     document.getElementById("result").style.color = "#facc15";
     return;    
   }   
 
-  isSubmitting = true; // 送信処理ロック開始
-  lastSubmittedAnswer = userAnswer; // 今回の解答を記憶   
+  isSubmitting = true;
+  lastSubmittedAnswer = userAnswer;
 
   let result = document.getElementById("result");
   userAttempts++;
 
-  // イロレーティング計算用
   const rProblem = Number(q.difficulty) || 1200;
   const rUser = userRate;
   const K = 32; 
   const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
   let rateChange = 0;
 
-  // 3. 複数回答（配列）に対応した正解判定
   let isCorrect = false;
   if (Array.isArray(q.answer)) {
     isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
@@ -222,45 +206,133 @@ function checkAnswer() {
     isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
   }
 
-  // 4. 正解・不正解の分岐処理
   if (isCorrect) {  
     result.textContent = "正解！";
     result.style.color = "#00ffcc"; 
     userSolved++;
-    q.isCleared = true; // クリアフラグ
-    createQuestionList(); // ★追加: 問題一覧のクリア表示(✓)を更新
+    q.isCleared = true;
+    createQuestionList(); // 問題一覧のクリア表示(✓)を更新
 
-    // レート上昇計算
     rateChange = Math.round(K * (1 - expectedScore));
     userRate += rateChange;
 
-    updateStatusDOM(); // ステータスUI更新呼び出し
+    updateStatusDOM();
+    autoSaveData(); // ★正解時にオートセーブ
 
-    // 【重要】正解後に次の問題をロードする処理
     setTimeout(() => {
-      document.getElementById("answer").value = ""; // 入力欄をクリア
-      loadNextQuestion(); // 次の問題へ進む（★レートに近い未クリア問題を選択）
-    }, 1500); // 1.5秒後に実行
+      document.getElementById("answer").value = "";
+      loadNextQuestion();
+    }, 1500);
 
   } else {
     result.textContent = "不正解...";
     result.style.color = "#ef4444";
 
-    // レート下落計算
     rateChange = Math.round(K * (0 - expectedScore));
-    userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
+    userRate = Math.max(0, userRate + rateChange);
     
-    updateStatusDOM(); // ステータスUI更新呼び出し
+    updateStatusDOM();
+    autoSaveData(); // ★不正解時（レート・試行回数変動時）にオートセーブ
     
-    // 不正解時は短時間（400ms）のクールダウン後にボタン押下のみ解除
-    // ※ lastSubmittedAnswer はクリアしないため、文字を修正するまで再送信での減点は一切発生しません
     setTimeout(() => {
       isSubmitting = false;
     }, 400);
   }
 }
 
-// Base64 デコード処理
+// ==========================================
+// ★【追加】セーブ・ロード・リセット（データ消去）機能
+// ==========================================
+
+// オートセーブ（静かに保存）
+function autoSaveData() {
+  saveDataToStorage();
+}
+
+// 手動セーブ（ボタンから呼び出し、メッセージを表示）
+function manualSaveData() {
+  saveDataToStorage();
+  const msg = document.getElementById("save-msg");
+  if (msg) {
+    msg.textContent = "✔ 学習記録を正常にセーブしました！";
+    msg.style.color = "#00ffcc";
+    setTimeout(() => { msg.textContent = ""; }, 3000);
+  }
+}
+
+// 実際の保存処理共通部
+function saveDataToStorage() {
+  const clearedIndices = questions
+    .map((q, idx) => q.isCleared ? idx : null)
+    .filter(idx => idx !== null);
+
+  const saveData = {
+    userRate: userRate,
+    userSolved: userSolved,
+    userAttempts: userAttempts,
+    currentQuestion: currentQuestion,
+    clearedIndices: clearedIndices
+  };
+
+  localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
+}
+
+// ページ読み込み時にデータを復元
+function loadSaveData() {
+  const json = localStorage.getItem("ctf_learning_data");
+  if (!json) return;
+
+  try {
+    const data = JSON.parse(json);
+    if (data.userRate !== undefined) userRate = data.userRate;
+    if (data.userSolved !== undefined) userSolved = data.userSolved;
+    if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
+    if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
+
+    if (Array.isArray(data.clearedIndices)) {
+      data.clearedIndices.forEach(idx => {
+        if (questions[idx]) questions[idx].isCleared = true;
+      });
+    }
+
+    updateStatusDOM();
+  } catch(e) {
+    console.error("セーブデータの読み込み失敗:", e);
+  }
+}
+
+// セーブデータの全消去（リセット機能）
+function resetSaveData() {
+  const confirmFirst = confirm("本当に学習記録を完全消去しますか？\n（この操作は取り消せません）");
+  if (!confirmFirst) return;
+
+  localStorage.removeItem("ctf_learning_data");
+
+  // ステータスを初期化
+  userRate = 1000;
+  userSolved = 0;
+  userAttempts = 0;
+  currentQuestion = 0;
+
+  // 問題のクリアフラグをリセット
+  questions.forEach(q => { q.isCleared = false; });
+
+  updateStatusDOM();
+  createQuestionList();
+  showQuestion();
+
+  const msg = document.getElementById("save-msg");
+  if (msg) {
+    msg.textContent = "⚠ すべての学習記録をリセットしました。";
+    msg.style.color = "#ef4444";
+    setTimeout(() => { msg.textContent = ""; }, 3000);
+  }
+}
+
+// ------------------------------------------
+// ツール系・共通処理
+// ------------------------------------------
+
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
@@ -297,7 +369,6 @@ function decodeBase64Logic(inputId, resultId, imgId) {
       if (resultImg) {
         resultImg.src = `data:${mimeType};base64,${input}`;
         resultImg.style.display = "block"; 
-        // 画像は読み込み完了後に高さが変わるため、読み込み後にも再計算する
         resultImg.onload = refreshDropdownHeight;
       }
       showResult(resultId, '画像のデコードに成功しました！', false);
@@ -312,7 +383,6 @@ function decodeBase64Logic(inputId, resultId, imgId) {
   }
 }
 
-// Hex デコード処理
 function runHex() {
   decodeHexLogic('tool-hex-input', 'tool-hex-result');
 }
@@ -331,7 +401,6 @@ function decodeHexLogic(inputId, resultId) {
   }
 }
 
-// Binary (2進数) デコード処理
 function runInlineBinary() {
   decodeBinaryLogic('inline-binary-input', 'inline-binary-result');
 }
@@ -348,7 +417,6 @@ function decodeBinaryLogic(inputId, resultId) {
   }
 }
 
-// Caesar ＆ Atbash 初期化設定
 window.addEventListener("DOMContentLoaded", () => {
   const selects = [
     document.getElementById("tool-caesar-shift-select"),
@@ -369,7 +437,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Caesar ＆ Atbash 実行・変換ロジック
 function runInlineCaesar() {
   const input = document.getElementById("inline-caesar-input").value;
   const shiftSelect = document.getElementById("inline-caesar-shift");
@@ -410,7 +477,6 @@ function decodeAtbashLogic(input) {
   });
 }
 
-// Vigenere デコード処理
 function runInlineVigenere() {
   const input = document.getElementById("inline-vigenere-input").value.trim();
   const key = document.getElementById("inline-vigenere-key").value.trim();
@@ -426,48 +492,33 @@ function decodeVigenereLogic(cipherText, key) {
   let result = "";
   const cleanKey = key.toUpperCase();
   
-  // 【手順1】鍵を暗号文の長さに合わせる
-  // 記号の部分には空白を入れるなどして、暗号文と1対1で対応する長い鍵文字列を作る
   let extendedKey = "";
   let keyIndex = 0;
   for (let i = 0; i < cipherText.length; i++) {
     let charCode = cipherText.charCodeAt(i);
-    // アルファベットの場合だけ鍵を進める
     if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
       extendedKey += cleanKey[keyIndex % cleanKey.length];
       keyIndex++;
     } else {
-      extendedKey += " "; // 記号や数字の位置にはダミーの空白を入れておく
+      extendedKey += " ";
     }
   }
 
-  // 暗号文を1文字ずつ処理する
   for (let i = 0; i < cipherText.length; i++) {
     let charCode = cipherText.charCodeAt(i);
 
-    // アルファベット（大文字・小文字）の場合
     if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
-      
-      // 大文字か小文字かの基準値（A=65, a=97）
       let base = (charCode >= 65 && charCode <= 90) ? 65 : 97;
-
-      // 【手順2】文字を数値に変換する (A/a=0, B/b=1... Z/z=25)
       let cipherNum = charCode - base;
-      let keyNum = extendedKey.charCodeAt(i) - 65; // extendedKeyは全て大文字(65)
-
-      // 【手順3】引き算をして元の数値を出す
+      let keyNum = extendedKey.charCodeAt(i) - 65;
       let plainNum = cipherNum - keyNum;
       
-      // マイナス（0未満）になった場合は、26を足す
       if (plainNum < 0) {
         plainNum += 26;
       }
 
-      // 【手順4】数値を文字に戻す
       result += String.fromCharCode(plainNum + base);
-
     } else {
-      // 記号や数字の場合はそのまま追加する
       result += cipherText[i];
     }
   }
@@ -475,7 +526,6 @@ function decodeVigenereLogic(cipherText, key) {
   return result;
 }
 
-// URL デコード処理
 function runInlineUrl() {
   const input = document.getElementById("inline-url-input").value.trim();
   if (!input) return;
@@ -486,7 +536,6 @@ function runInlineUrl() {
   }
 }
 
-// HTML デコード処理
 function runInlineHtml() {
   const input = document.getElementById("inline-html-input").value.trim();
   if (!input) return;
@@ -494,7 +543,6 @@ function runInlineHtml() {
   showResult("inline-html-result", doc.body.textContent, false);
 }
 
-// Hash (MD5 / SHA1 / SHA256) 識別処理
 function runInlineHash() {
   const input = document.getElementById("inline-hash-input").value.trim();
   if (!input) return;
@@ -516,7 +564,6 @@ function identifyHashLogic(hash) {
   }
 }
 
-// 【独立画面用】統合実行処理
 function runSelectedMainTool() {
   const tool = document.getElementById('tool-select').value;
   const input = document.getElementById('tool-input').value.trim();
@@ -571,7 +618,6 @@ function runSelectedMainTool() {
   }
 }
 
-// 結果表示用 共通関数
 function showResult(resultId, message, isError) {
   const resultElement = document.getElementById(resultId);
   if (resultElement) {
@@ -583,22 +629,15 @@ function showResult(resultId, message, isError) {
     }
   }
 
-  // 簡易解析ツール（アコーディオン）内の結果が更新された場合、
-  // パネルの高さが古いままだと見切れてしまうので、開いていれば高さを再計算する
   refreshDropdownHeight();
 }
 
-// =====================================================================
-// ★【変更】問題一覧の自動生成
-//   変更前: 「Q 1 / 難易度」だけのグリッドボタン
-//   変更後: 目次風の縦リスト（番号・問題文プレビュー・難易度・クリア状況）
-// =====================================================================
+// 問題一覧の自動生成（目次風リスト）
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
   if (!listContainer) return;
   listContainer.innerHTML = "";
 
-  // ★追加: index.html側のグリッド用インラインstyleを外し、CSS(.question-list)に任せる
   listContainer.removeAttribute("style");
   listContainer.className = "question-list";
 
@@ -607,21 +646,17 @@ function createQuestionList() {
     row.type = "button";
     row.className = "question-row" + (q.isCleared ? " cleared" : "");
 
-    // 番号（Q 1, Q 2 ...）
     const label = document.createElement("span");
     label.className = "question-row-label";
     label.textContent = "Q " + (index + 1);
 
-    // 問題文プレビュー（最初の段落だけ。長い場合はCSSで2行に省略）
     const text = document.createElement("span");
     text.className = "question-row-text";
     text.textContent = String(q.question).split("\n")[0];
 
-    // 目次の「……」にあたる点線
     const leader = document.createElement("span");
     leader.className = "question-row-leader";
 
-    // 難易度（クリア済みなら ✓ を付ける）
     const meta = document.createElement("span");
     meta.className = "question-row-meta";
     meta.textContent = (q.isCleared ? "✓ " : "") + q.difficulty;
@@ -640,8 +675,8 @@ function selectQuestion(index) {
   showQuestion();            
   document.getElementById("result").textContent = "";
   document.getElementById("answer").value = "";
-  lastSubmittedAnswer = ""; // 連打防止記憶をリセット
-  isSubmitting = false; // 送信ロックリセット
+  lastSubmittedAnswer = "";
+  isSubmitting = false;
   showScreen("play-screen"); 
 }
 
@@ -655,7 +690,6 @@ function toggleHint() {
     panel.classList.remove("open");
   } else {
     panel.classList.add("open");
-    // scrollHeightを使ってコンテンツの高さ分だけ展開
     panel.style.maxHeight = panel.scrollHeight + "px";
   }
 }
@@ -667,14 +701,12 @@ function updateHintData(questionData) {
   
   if (!hintText || !panel) return;
 
-  // JSONデータからヒントテキストを更新
   if (questionData && questionData.hint) {
     hintText.innerHTML = questionData.hint;
   } else {
     hintText.innerHTML = "この問題にヒントはありません。";
   }
 
-  // 問題が切り替わった際は必ずドロップダウンを閉じた状態にリセットする
   panel.style.maxHeight = "0px";
   panel.classList.remove("open");
 }
