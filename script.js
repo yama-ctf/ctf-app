@@ -250,7 +250,11 @@ function autoSaveData() {
 }
 
 // 手動セーブ（ボタンから呼び出し、メッセージを表示）
+// 手動セーブ（確認ダイアログ表示後にセーブ）
 function manualSaveData() {
+  const confirmSave = confirm("現在の学習記録をセーブしますか？");
+  if (!confirmSave) return; // キャンセルされた場合は処理を中断
+
   saveDataToStorage();
   const msg = document.getElementById("save-msg");
   if (msg) {
