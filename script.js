@@ -160,7 +160,7 @@ function updateStatusDOM() {
   if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
 }
 
-// 正解判定
+// 正解判定（動的eloレーティング・上限キャップ組み込み版）
 function checkAnswer() {
   if (questions.length === 0 || currentQuestion >= questions.length) return;
 
@@ -193,10 +193,13 @@ function checkAnswer() {
   let result = document.getElementById("result");
   userAttempts++;
 
+  // ------------------------------------------
+  // ★eloレーティング計算ロジック（動的Kファクター ＆ キャップ）
+  // ------------------------------------------
   const rProblem = Number(q.difficulty) || 1200;
   const rUser = userRate;
-  const K = 32; 
-  const expectedScore = 1 / (1 + Math.pow(10, (rProblem - rUser) / 400));
+  const diff = rProblem - rUser; // 難易度と現在レートの差（正: 格上, 負: 格下）
+  const expectedScore = 1 / (1 + Math.pow(10, diff / 400));
   let rateChange = 0;
 
   let isCorrect = false;
@@ -213,11 +216,13 @@ function checkAnswer() {
     q.isCleared = true;
     createQuestionList(); // 問題一覧のクリア表示(✓)を更新
 
-    rateChange = Math.round(K * (1 - expectedScore));
+    // ★正解時：格上ボーナス（格上ほどK値が拡張され跳ね上がる）
+    let dynamicK = 32 + (diff > 0 ? diff / 5 : 0);
+    rateChange = Math.round(dynamicK * (1 - expectedScore));
     userRate += rateChange;
 
     updateStatusDOM();
-    autoSaveData(); // ★正解時にオートセーブ
+    autoSaveData(); // 正解時にオートセーブ
 
     setTimeout(() => {
       document.getElementById("answer").value = "";
@@ -228,11 +233,18 @@ function checkAnswer() {
     result.textContent = "不正解...";
     result.style.color = "#ef4444";
 
-    rateChange = Math.round(K * (0 - expectedScore));
-    userRate = Math.max(0, userRate + rateChange);
+    // ★不正解時：格下でのミスほどペナルティが大きくなるが、最大で -75 pt に制限
+    const penaltyDiff = diff < 0 ? Math.abs(diff) : 0;
+    let dynamicK = 32 + (penaltyDiff / 5);
+    let rawLoss = Math.round(dynamicK * (0 - expectedScore)); // マイナス値
+
+    const MAX_LOSS = -75; // 減少上限キャップ
+    rateChange = Math.max(rawLoss, MAX_LOSS); 
+
+    userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
     
     updateStatusDOM();
-    autoSaveData(); // ★不正解時（レート・試行回数変動時）にオートセーブ
+    autoSaveData(); // 不正解時にオートセーブ
     
     setTimeout(() => {
       isSubmitting = false;
@@ -241,7 +253,7 @@ function checkAnswer() {
 }
 
 // ==========================================
-// ★【追加】セーブ・ロード・リセット（データ消去）機能
+// ★セーブ・ロード・リセット（データ消去）機能
 // ==========================================
 
 // オートセーブ（静かに保存）
@@ -249,7 +261,6 @@ function autoSaveData() {
   saveDataToStorage();
 }
 
-// 手動セーブ（ボタンから呼び出し、メッセージを表示）
 // 手動セーブ（確認ダイアログ表示後にセーブ）
 function manualSaveData() {
   const confirmSave = confirm("現在の学習記録をセーブしますか？");
