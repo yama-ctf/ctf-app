@@ -50,6 +50,7 @@ function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const areas = {
     base64: document.getElementById('inline-base64-area'),
+    base32: document.getElementById('inline-base32-area'),
     hex: document.getElementById('inline-hex-area'),
     binary: document.getElementById('inline-binary-area'),
     caesar: document.getElementById('inline-caesar-area'),
@@ -57,6 +58,7 @@ function switchInlineTool() {
     vigenere: document.getElementById('inline-vigenere-area'),
     url: document.getElementById('inline-url-area'),
     html: document.getElementById('inline-html-area'),
+    ascii_dec: document.getElementById('inline-ascii_dec-area'),
     hash: document.getElementById('inline-hash-area')
   };
 
@@ -348,6 +350,79 @@ function resetSaveData() {
 // ツール系・共通処理
 // ------------------------------------------
 
+// ------------------------------------------
+// ★追加: Base32 / ASCII Decimal (10進数) の機能
+// ------------------------------------------
+
+function runInlineBase32() {
+  decodeBase32Logic('tool-base32-input', 'tool-base32-result');
+}
+
+function decodeBase32Logic(inputId, resultId) {
+  const input = document.getElementById(inputId).value.trim();
+  if (!input) return;
+
+  // Base32デコードの実装
+  const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let bits = "";
+  let decoded = "";
+
+  const cleanInput = input.toUpperCase().replace(/=+$/, ""); // パディングを削除
+
+  try {
+    for (let i = 0; i < cleanInput.length; i++) {
+      const val = base32chars.indexOf(cleanInput.charAt(i));
+      if (val === -1) {
+        throw new Error("Invalid Base32 character");
+      }
+      bits += val.toString(2).padStart(5, '0');
+    }
+
+    for (let i = 0; i + 8 <= bits.length; i += 8) {
+      const chunk = bits.substr(i, 8);
+      // 8ビット揃っていない最後の端数は無視する
+      if (chunk.length === 8) {
+        decoded += String.fromCharCode(parseInt(chunk, 2));
+      }
+    }
+    showResult(resultId, decoded, false);
+  } catch(e) {
+    showResult(resultId, 'デコード失敗（正しいBase32ではありません）', true);
+  }
+}
+
+function runInlineAsciiDec() {
+  decodeAsciiDecLogic('inline-ascii_dec-input', 'inline-ascii_dec-result');
+}
+
+function decodeAsciiDecLogic(inputId, resultId) {
+  const input = document.getElementById(inputId).value.trim();
+  if (!input) return;
+
+  try {
+    // 数値をスペース、カンマ等で区切って配列化
+    const numbers = input.split(/[\s,]+/);
+    let decoded = "";
+    
+    for (let numStr of numbers) {
+      if (!numStr) continue;
+      const num = parseInt(numStr, 10);
+      if (isNaN(num)) throw new Error("Not a number");
+      decoded += String.fromCharCode(num);
+    }
+    
+    if (decoded.length === 0) {
+      showResult(resultId, 'デコード失敗（正しい10進数の数列ではありません）', true);
+      return;
+    }
+    
+    showResult(resultId, decoded, false);
+  } catch (e) {
+    showResult(resultId, 'デコード失敗（正しい10進数の数列ではありません）', true);
+  }
+}
+
+
 function runBase64() {
   decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
 }
@@ -596,6 +671,13 @@ function runSelectedMainTool() {
       case 'base64':
         decodeBase64Logic('tool-input', 'tool-main-result', 'tool-main-img');
         break;
+      case 'base32':
+        decodeBase32Logic('tool-input', 'tool-main-result');
+        break;
+      case 'ascii_dec':
+        decodeAsciiDecLogic('tool-input', 'tool-main-result');
+        break;
+
       case 'hex':
         decodeHexLogic('tool-input', 'tool-main-result');
         break;
