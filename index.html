@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -313,6 +314,22 @@
 
         <div class="exercise-card">
           <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🔠 Base32（ベースサンニ）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> データを「A〜Z」の26文字と「2〜7」の6文字、計32種類の文字で表現するエンコード方式です。Base64と似ていますが、大文字のみで構成されるのが特徴です。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li>小文字が一切含まれず、数字も「2〜7」しか使われません（0, 1, 8, 9は不使用）。</li>
+              <li>末尾に <code style="color: #00ffcc;">=</code>（パディング）がつくことがありますが、Base64よりも多く連続すること（===など）があります。</li>
+              <li>CTFでは、一見すると大文字ばかりの謎の文字列として出題されることが多いです。</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise-card">
+          <div class="exercise-header">
             <h3 style="color: #38bdf8;">🔢 Hex（16進数表記）</h3>
             <span class="exercise-difficulty">頻出度: ★★★</span>
           </div>
@@ -323,6 +340,22 @@
               <li>文字の中に <code style="color: #00ffcc;">g</code> 以降のアルファベット（g, h, i...など）が**絶対に出てこない**のが最大の特徴。</li>
               <li>先頭に <code style="color: #00ffcc;">0x</code> がついていたり、2文字ごとにスペースで区切られていることが多い。</li>
               <li>CTFでは、ファイルの先頭データ（マジックナンバー）をHexで読み解き、隠されたファイル形式（PNGなら <code style="color: #00ffcc;">89 50 4E 47</code>）を突き止める際に必須の知識になります。</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="exercise-card">
+          <div class="exercise-header">
+            <h3 style="color: #38bdf8;">🔟 ASCII Decimal（10進数）</h3>
+            <span class="exercise-difficulty">頻出度: ★★☆</span>
+          </div>
+          <div class="exercise-body">
+            <p><strong>【特徴】</strong> 文字をコンピュータで扱うための「ASCIIコード」を、私たちが日常的に使う10進数（0〜9の数字）で表したものです。</p>
+            <p><strong>【豆知識・見分け方】</strong></p>
+            <ul>
+              <li><code style="color: #00ffcc;">65</code>（A）から <code style="color: #00ffcc;">122</code>（z）あたりの2桁〜3桁の数字がスペース区切りで並んでいるのが最大の特徴です。</li>
+              <li>CTFのフラグ形式（CTF{...}）によく使われる文字は、<code style="color: #00ffcc;">67 84 70 123</code> のように見えます（67=C, 84=T, 70=F, 123={）。</li>
+              <li>単なる数字の羅列に見えるため、Hex（16進数）やOctal（8進数）と間違えないよう数値の範囲を観察するのがコツです。</li>
             </ul>
           </div>
         </div>
