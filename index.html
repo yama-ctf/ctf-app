@@ -114,6 +114,7 @@
               <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
               <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
                 <option value="base64">Base64 デコーダー</option>
+                <option value="base32">Base32 デコーダー</option>
                 <option value="hex">Hex (16進数) デコーダー</option>
                 <option value="binary">Binary (2進数) デコーダー</option>
                 <option value="caesar">Caesar デコーダー</option>
@@ -121,6 +122,7 @@
                 <option value="vigenere">Vigenere デコーダー</option>
                 <option value="url">URL デコーダー</option>
                 <option value="html">HTML デコーダー</option>
+                <option value="ascii_dec">ASCII Decimal (10進数) デコーダー</option>
                 <option value="hash">ハッシュ識別 (MD5/SHA1/SHA256)</option>
               </select>
             </div>
@@ -133,6 +135,16 @@
               </div>
               <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
               <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
+            </div>
+
+            
+            <!-- Base32エリア -->
+            <div id="inline-base32-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="tool-base32-input" class="tool-input" placeholder="Base32文字列を入力 (例: JBSWY3DPEBLW64TMMQQQ====)">
+                <button class="exercise-submit-btn" onclick="runInlineBase32()">デコード</button>
+              </div>
+              <p id="tool-base32-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
             <!-- Hexエリア -->
@@ -194,10 +206,20 @@
             <!-- HTMLエリア -->
             <div id="inline-html-area" style="display: none;">
               <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-html-input" class="tool-input" placeholder="例: &amp;lt;script&amp;gt;">
+                <input type="text" id="inline-html-input" class="tool-input" placeholder="例: &lt;script&gt;">
                 <button class="exercise-submit-btn" onclick="runInlineHtml()">デコード</button>
               </div>
               <p id="inline-html-result" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+
+            
+            <!-- ASCII Decimalエリア -->
+            <div id="inline-ascii_dec-area" style="display: none;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inline-ascii_dec-input" class="tool-input" placeholder="例: 70 76 65 71 123">
+                <button class="exercise-submit-btn" onclick="runInlineAsciiDec()">デコード</button>
+              </div>
+              <p id="inline-ascii_dec-result" style="margin-top: 10px; font-weight: bold;"></p>
             </div>
 
             <!-- Hash識別エリア -->
@@ -229,6 +251,7 @@
             <label style="color: #94a3b8; display: block; margin-bottom: 8px; font-weight: bold;">使用するツールを選択:</label>
             <select id="tool-select" onchange="switchMainTool()" style="padding: 10px; background-color: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 16px; width: 100%;">
               <option value="base64">Base64 デコード</option>
+              <option value="base32">Base32 デコード</option>
               <option value="hex">Hex (16進数) デコード</option>
               <option value="binary">Binary (2進数) デコード</option>
               <option value="caesar">Caesar (シーザー暗号) デコード</option>
@@ -236,6 +259,7 @@
               <option value="vigenere">Vigenere (ヴィジュネル暗号) 解読</option>
               <option value="url">URL デコード</option>
               <option value="html">HTMLエンティティ デコード</option>
+              <option value="ascii_dec">ASCII Decimal (10進数) デコード</option>
               <option value="hash">ハッシュ値 識別 (MD5 / SHA1 / SHA256)</option>
             </select>
           </div>
