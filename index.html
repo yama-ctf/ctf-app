@@ -1,530 +1,837 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>CTFサイト</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<script>
+    let questions = [];
+    let currentQuestion = 0;
 
-  <div class="app-container">
+    // ステータスを記録するための変数
+    let userRate = 1000;
+    let userSolved = 0; // ユーザーが解けた問題数
+    let userAttempts = 0; // 試行回数
+    let lastSubmittedAnswer = "";
+    let isSubmitting = false; // 【連打防止】送信処理中フラグ
 
-    <!-- サイドバー -->
-    <aside class="sidebar">
-      <h2>MENU</h2>
-      <button class="nav-btn" onclick="showScreen('home-screen')">ホーム画面</button>
-      <button class="nav-btn" onclick="showScreen('play-screen')">解析演習</button>
-      <button class="nav-btn" onclick="showScreen('list-screen')">問題一覧</button>
-      <button class="nav-btn" onclick="showScreen('tool-screen')">解析ツール</button>
-      <button class="nav-btn" onclick="showScreen('commentary-screen')">解説・豆知識</button>
-      <button class="nav-btn" onclick="showScreen('save-screen')">セーブ・記録</button>
-    </aside>
+    // ==========================================
+    // ★追加: タイマー用の変数群
+    // ==========================================
+    let timerInterval;
+    let currentSeconds = 0;
+    let totalSeconds = 0;
+    let isPlaying = false;
 
-    <!-- メインコンテンツ -->
-    <main class="main-content">
+    // ==========================================
+    // ★追加: タイマー制御用の専用関数
+    // ==========================================
+    function startTimer() {
+      if (isPlaying) return;
+      timerInterval = setInterval(() => {
+        currentSeconds++;
+        totalSeconds++;
+        updateDisplay();
+      }, 1000);
+      isPlaying = true;
       
-      <!-- ステータス表示領域 -->
-      <div class="status-container">
-        <div class="status-card"><div class="status-label">レート</div><div class="status-value"><span id="user-rate">1000</span></div></div>
-        <div class="status-card"><div class="status-label">正解数</div><div class="status-value"><span id="user-solved">0</span></div></div>
-        <div class="status-card"><div class="status-label">挑戦数</div><div class="status-value"><span id="user-attempts">0</span></div></div>
-        <div class="status-card"><div class="status-label">正答率</div><div class="status-value"><span id="user-accuracy">0%</span></div></div>
-      </div>
+      const toggleBtn = document.getElementById('timer-start-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-pause"></i> 停止';
+        toggleBtn.style.backgroundColor = '#c53030'; // 赤色（停止可能を示す）
+      }
+    }
+
+    function stopTimer() {
+      if (!isPlaying) return;
+      clearInterval(timerInterval);
+      isPlaying = false;
       
-      <!-- 1. ホーム画面 -->
-      <div id="home-screen" class="page-screen active">
-        <h1>ホーム画面</h1>
-        <p class="home-lead">ようこそ！遊びたいメニューを選んでください。</p>
+      const toggleBtn = document.getElementById('timer-start-btn');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="fas fa-play"></i> 再開';
+        toggleBtn.style.backgroundColor = '#0d8050'; // 緑色（再開可能を示す）
+      }
+    }
 
-        <!-- セクション1：演習・ツール（3枚） -->
-        <h2 class="home-section-title">演習・ツール</h2>
-        <div class="home-grid">
-          <button type="button" class="home-tile" onclick="showScreen('play-screen')">
-            <span class="home-tile-icon">🎯</span>
-            <span class="home-tile-name">解析演習</span>
-            <span class="home-tile-desc">いまの問題に挑戦する</span>
-          </button>
-          <button type="button" class="home-tile" onclick="showScreen('list-screen')">
-            <span class="home-tile-icon">📋</span>
-            <span class="home-tile-name">問題一覧</span>
-            <span class="home-tile-desc">好きな問題を選んで解く</span>
-          </button>
-          <button type="button" class="home-tile" onclick="showScreen('tool-screen')">
-            <span class="home-tile-icon">🛠️</span>
-            <span class="home-tile-name">解析ツール</span>
-            <span class="home-tile-desc">Base64・Hex・シーザー暗号など</span>
-          </button>
-        </div>
+    // ==========================================
+    // ★追加: タイマーフォーマット・表示更新・記録関数
+    // ==========================================
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
 
-        <!-- セクション2：学習・記録（2枚） -->
-        <h2 class="home-section-title">学習・記録</h2>
-        <div class="home-grid">
-          <button type="button" class="home-tile" onclick="showScreen('commentary-screen')">
-            <span class="home-tile-icon">📖</span>
-            <span class="home-tile-name">解説・豆知識</span>
-            <span class="home-tile-desc">暗号の特徴と見分け方</span>
-          </button>
-          <button type="button" class="home-tile home-tile-wide" onclick="showScreen('save-screen')">
-            <span class="home-tile-icon">💾</span>
-            <span class="home-tile-name">セーブ・記録</span>
-            <span class="home-tile-desc">レートや正答率を確認する</span>
-          </button>
-        </div>
-      </div>
+    function formatTimeJa(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${m}分${s}秒`;
+    }
 
-      <!-- 2. 解析演習画面 -->
-      <div id="play-screen" class="page-screen">
-        <h1>解析演習</h1>
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3>現在の問題</h3>
-            <!-- ========================================== -->
-            <!-- ★変更: タイマーUIを難易度の左に移動し横並びに -->
-            <!-- ========================================== -->
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <div class="timer-ui">
-                <span class="timer-display"><i class="fas fa-clock"></i> <span id="current-timer">00:00</span></span>
-                <!-- 自動スタートのため初期状態を「停止」にしています -->
-                <button id="timer-start-btn" class="timer-btn start" style="background-color: #c53030;"><i class="fas fa-pause"></i> 停止</button>
-                <button id="timer-reset-btn" class="timer-btn reset"><i class="fas fa-redo"></i></button>
-              </div>
-              <span id="difficulty" class="exercise-difficulty">難易度: 読み込み中...</span>
-            </div>
-          </div>
-          <div class="exercise-body">
-            <p id="question">問題が表示されます</p>
-            <div class="question-header-controls">
-            
-            <!-- ヒント機能のドロップダウンエリア -->
-            <div style="margin-top: 15px;">
-              <button onclick="toggleHint()" style="background: none; border: none; color: #facc15; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; padding: 0; font-size: 14px; outline: none;">
-                💡 ヒントを見る
-              </button>
-              <div id="hint-panel" style="max-height: 0px; overflow: hidden; transition: max-height 0.3s ease;">
-                <div style="padding: 12px; margin-top: 10px; background-color: #1e293b; border-left: 4px solid #facc15; border-radius: 4px;">
-                  <p id="hint-text" style="color: #cbd5e1; font-size: 14px; margin: 0; line-height: 1.5;"></p>
-                </div>
-              </div>
-            </div>
+    function updateDisplay() {
+      const currentFormatted = formatTime(currentSeconds);
+      const currentTimerEl = document.getElementById('current-timer');
+      const currentQuestTimeEl = document.getElementById('current-quest-time');
+      const totalTimeJaEl = document.getElementById('total-time-ja');
+      const totalTimeMsEl = document.getElementById('total-time-ms');
 
-          </div>
-        </div>
-        <div class="exercise-input-group">
-          <input type="text" id="answer" class="exercise-input" placeholder="フラグを入力してください">
-          <button onclick="checkAnswer()" class="exercise-submit-btn">送信</button>
-        </div>
-        <h2 id="result" style="margin-top: 20px; color: #0ea5e9;"></h2>
+      if (currentTimerEl) currentTimerEl.textContent = currentFormatted;
+      if (currentQuestTimeEl) currentQuestTimeEl.textContent = currentFormatted;
+      
+      if (totalTimeJaEl) {
+          totalTimeJaEl.textContent = formatTimeJa(totalSeconds);
+          if (totalTimeMsEl) totalTimeMsEl.textContent = `(${formatTime(totalSeconds)})`;
+      }
+    }
 
-        <!-- 簡易解析ツール（ドロップダウン） -->
-        <div style="margin-top: 40px; border-top: 1px solid #1f2937; padding-top: 20px;">
-          <button type="button" class="exercise-submit-btn" onclick="toggleDropdown()" style="background-color: #1e293b; color: #38bdf8; border: 1px solid #334155; width: auto; display: flex; gap: 10px; align-items: center;">
-            🛠️ 簡易解析ツール <span id="arrow-icon" class="arrow-icon">▼</span>
-          </button>
-          
-          <div id="tools-dropdown" class="dropdown-container" style="margin-top: 15px;">
-            <div style="margin-bottom: 15px;">
-              <label style="font-size: 14px; color: #94a3b8; margin-right: 10px;">デコード方式:</label>
-              <select id="inline-tool-selector" onchange="switchInlineTool()" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 14px; outline: none;">
-                <option value="base64">Base64 デコーダー</option>
-                <option value="base32">Base32 デコーダー</option>
-                <option value="hex">Hex (16進数) デコーダー</option>
-                <option value="binary">Binary (2進数) デコーダー</option>
-                <option value="caesar">Caesar デコーダー</option>
-                <option value="atbash">Atbash デコーダー</option>
-                <option value="vigenere">Vigenere デコーダー</option>
-                <option value="url">URL デコーダー</option>
-                <option value="html">HTML デコーダー</option>
-                <option value="ascii_dec">ASCII Decimal (10進数) デコーダー</option>
-                <option value="hash">ハッシュ識別 (MD5/SHA1/SHA256)</option>
-              </select>
-            </div>
+    function addClearRecord(questionTitle, seconds) {
+      const list = document.getElementById('clear-time-list');
+      if (!list) return;
+      const li = document.createElement('li');
+      
+      // タイトルを丸める処理（20文字程度）
+      const shortTitle = questionTitle.length > 20 ? questionTitle.substring(0, 20) + '...' : questionTitle;
+      
+      li.innerHTML = `<span class="quest-title">${shortTitle}</span><span class="time-badge"><i class="fas fa-stopwatch"></i> ${formatTime(seconds)}</span>`;
+      list.prepend(li); // 最新を一番上に追加
+    }
+    // ==========================================
 
-            <!-- Base64エリア -->
-            <div id="inline-base64-area">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="tool-base64-input" class="tool-input" placeholder="Base64文字列を入力">
-                <button class="exercise-submit-btn" onclick="runBase64()">デコード</button>
-              </div>
-              <p id="tool-base64-result" style="margin-top: 10px; font-weight: bold;"></p>
-              <img id="tool-base64-img" style="margin-top: 10px; max-width: 100%; display: none;">
-            </div>
+    // 画面切り替え関数
+    function showScreen(screenId) {
+      const screens = document.querySelectorAll('.page-screen');
+      screens.forEach(screen => {
+        screen.classList.remove('active');
+      });
+      const targetScreen = document.getElementById(screenId);
+      if (targetScreen) {
+        targetScreen.classList.add('active');
+      }
+    }
 
-            <!-- Base32エリア -->
-            <div id="inline-base32-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="tool-base32-input" class="tool-input" placeholder="Base32文字列を入力 (例: JBSWY3DPEBLW64TMMQQQ====)">
-                <button class="exercise-submit-btn" onclick="runInlineBase32()">デコード</button>
-              </div>
-              <p id="tool-base32-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
+    function toggleDropdown() {
+      const dropdown = document.getElementById('tools-dropdown');
+      const arrow = document.getElementById('arrow-icon');
+      if (dropdown.style.maxHeight === '0px' || !dropdown.style.maxHeight) {
+        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+        arrow.style.transform = "rotate(180deg)";
+      } else {
+        dropdown.style.maxHeight = "0px";
+        arrow.style.transform = "rotate(0deg)";
+      }
+    }
 
-            <!-- Hexエリア -->
-            <div id="inline-hex-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="tool-hex-input" class="tool-input" placeholder="例: 48 65 6c 6c 6f">
-                <button class="exercise-submit-btn" onclick="runHex()">デコード</button>
-              </div>
-              <p id="tool-hex-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function refreshDropdownHeight() {
+      const dropdown = document.getElementById('tools-dropdown');
+      if (dropdown && dropdown.style.maxHeight && dropdown.style.maxHeight !== '0px') {
+        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+      }
+    }
 
-            <!-- Binaryエリア -->
-            <div id="inline-binary-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-binary-input" class="tool-input" placeholder="例: 01001000 01100101">
-                <button class="exercise-submit-btn" onclick="runInlineBinary()">デコード</button>
-              </div>
-              <p id="inline-binary-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function switchInlineTool() {
+      const selected = document.getElementById('inline-tool-selector').value;
+      const areas = {
+        base64: document.getElementById('inline-base64-area'),
+        base32: document.getElementById('inline-base32-area'),
+        hex: document.getElementById('inline-hex-area'),
+        binary: document.getElementById('inline-binary-area'),
+        caesar: document.getElementById('inline-caesar-area'),
+        atbash: document.getElementById('inline-atbash-area'),
+        vigenere: document.getElementById('inline-vigenere-area'),
+        url: document.getElementById('inline-url-area'),
+        html: document.getElementById('inline-html-area'),
+        ascii_dec: document.getElementById('inline-ascii_dec-area'),
+        hash: document.getElementById('inline-hash-area')
+      };
+      for (const key in areas) {
+        if (areas[key]) {
+          areas[key].style.display = (key === selected) ? 'block' : 'none';
+        }
+      }
+      refreshDropdownHeight();
+    }
 
-            <!-- Caesarエリア -->
-            <div id="inline-caesar-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-caesar-input" class="tool-input" placeholder="暗号文を入力 (例: Khoor)">
-                <select id="inline-caesar-shift" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;"></select>
-                <button class="exercise-submit-btn" onclick="runInlineCaesar()">デコード</button>
-              </div>
-              <p id="inline-caesar-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function switchMainTool() {
+      const tool = document.getElementById('tool-select').value;
+      const caesarExtra = document.getElementById('tool-extra-caesar');
+      const vigenereExtra = document.getElementById('tool-extra-vigenere');
+      if (caesarExtra) caesarExtra.style.display = (tool === 'caesar') ? 'block' : 'none';
+      if (vigenereExtra) vigenereExtra.style.display = (tool === 'vigenere') ? 'block' : 'none';
+    }
 
-            <!-- Atbashエリア -->
-            <div id="inline-atbash-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-atbash-input" class="tool-input" placeholder="暗号文を入力 (例: Svool)">
-                <button class="exercise-submit-btn" onclick="runInlineAtbash()">デコード</button>
-              </div>
-              <p id="inline-atbash-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    // 非同期読み込みの代わりとして、次イベントループで初期化を実行する
+    setTimeout(() => {
+      loadSaveData(); 
+      showQuestion();
+      createQuestionList();
+    }, 0);
 
-            <!-- Vigenereエリア -->
-            <div id="inline-vigenere-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="inline-vigenere-input" class="tool-input" placeholder="暗号文を入力">
-                <input type="text" id="inline-vigenere-key" class="tool-input" placeholder="鍵 (Key) を入力" style="max-width: 150px;">
-                <button class="exercise-submit-btn" onclick="runInlineVigenere()">デコード</button>
-              </div>
-              <p id="inline-vigenere-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    // 問題表示関数
+    function showQuestion() {
+      if (questions.length === 0) return;
+      let q = questions[currentQuestion];
+      document.getElementById("difficulty").textContent = "難易度: " + q.difficulty;
+      document.getElementById("question").textContent = q.question;
+      updateHintData(q);
 
-            <!-- URLエリア -->
-            <div id="inline-url-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-url-input" class="tool-input" placeholder="例: %48%65%6c%6c%6f">
-                <button class="exercise-submit-btn" onclick="runInlineUrl()">デコード</button>
-              </div>
-              <p id="inline-url-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+      // ==========================================
+      // ★変更: 秒数をリセットし、自動でタイマーを開始
+      // ==========================================
+      currentSeconds = 0;
+      updateDisplay();
+      clearInterval(timerInterval);
+      isPlaying = false;
+      startTimer();
+    }
 
-            <!-- HTMLエリア -->
-            <div id="inline-html-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-html-input" class="tool-input" placeholder="例: &lt;script&gt;">
-                <button class="exercise-submit-btn" onclick="runInlineHtml()">デコード</button>
-              </div>
-              <p id="inline-html-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function pickNextQuestionIndex() {
+      let bestDiff = Infinity;
+      let candidates = [];
+      questions.forEach((q, i) => {
+        if (q.isCleared) return;
+        const diff = Math.abs((Number(q.difficulty) || 1200) - userRate);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          candidates = [i];
+        } else if (diff === bestDiff) {
+          candidates.push(i);
+        }
+      });
+      if (candidates.length === 0) return -1;
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
 
-            <!-- ASCII Decimalエリア -->
-            <div id="inline-ascii_dec-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-ascii_dec-input" class="tool-input" placeholder="例: 70 76 65 71 123">
-                <button class="exercise-submit-btn" onclick="runInlineAsciiDec()">デコード</button>
-              </div>
-              <p id="inline-ascii_dec-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function loadNextQuestion() {
+      lastSubmittedAnswer = "";
+      isSubmitting = false;
+      const nextIndex = pickNextQuestionIndex();
+      if (nextIndex !== -1) {
+        currentQuestion = nextIndex;
+        showQuestion();
+        document.getElementById("result").textContent = "";
+      } else {
+        document.getElementById("result").textContent = "全問題をクリアしました！";
+        document.getElementById("result").style.color = "#00ffcc";
+      }
+    }
 
-            <!-- Hash識別エリア -->
-            <div id="inline-hash-area" style="display: none;">
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inline-hash-input" class="tool-input" placeholder="ハッシュ値を入力 (MD5 / SHA1 / SHA256)">
-                <button class="exercise-submit-btn" onclick="runInlineHash()">識別</button>
-              </div>
-              <p id="inline-hash-result" style="margin-top: 10px; font-weight: bold;"></p>
-            </div>
+    function updateStatusDOM() {
+      document.getElementById("user-rate").textContent = userRate;
+      document.getElementById("user-solved").textContent = userSolved;
+      document.getElementById("user-attempts").textContent = userAttempts;
+      let accuracy = 0;
+      if (userAttempts > 0) {
+        accuracy = Math.round((userSolved / userAttempts) * 100);
+      }
+      document.getElementById("user-accuracy").textContent = accuracy + "%";
+      if (document.getElementById("save-rate")) document.getElementById("save-rate").textContent = userRate;
+      if (document.getElementById("save-solved")) document.getElementById("save-solved").textContent = userSolved;
+      if (document.getElementById("save-attempts")) document.getElementById("save-attempts").textContent = userAttempts;
+      if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
+    }
 
-          </div>
-        </div>
-      </div>
-</div>
-      <!-- 3. 問題一覧画面 -->
-      <div id="list-screen" class="page-screen">
-        <h1>問題一覧</h1>
-        <p style="color: #94a3b8;">解きたい問題を選択してください。</p>
-        <div id="question-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;"></div>
-      </div>
+    function checkAnswer() {
+      if (questions.length === 0 || currentQuestion >= questions.length) return;
+      if (isSubmitting) return;
+      let q = questions[currentQuestion];
+      if (q.isCleared) {
+        document.getElementById("result").textContent = "この問題はすでにクリア済みです。";
+        document.getElementById("result").style.color = "#94a3b8";
+        return;
+      }
+      let userAnswer = document.getElementById("answer").value.trim();
+      if (!userAnswer) {
+        document.getElementById("result").textContent = "フラグを入力してください。";
+        document.getElementById("result").style.color = "#facc15";
+        return;
+      }
+      if (userAnswer === lastSubmittedAnswer) {
+        document.getElementById("result").textContent = "同じ解答がすでに送信されています。";
+        document.getElementById("result").style.color = "#facc15";
+        return;
+      }
 
-      <!-- 4. 解析ツール (独立画面) -->
-      <div id="tool-screen" class="page-screen">
-        <h1>解析ツール</h1>
+      isSubmitting = true;
+      lastSubmittedAnswer = userAnswer;
+      let result = document.getElementById("result");
+      userAttempts++;
+
+      const rProblem = Number(q.difficulty) || 1200;
+      const rUser = userRate;
+      const diff = rProblem - rUser;
+      const expectedScore = 1 / (1 + Math.pow(10, diff / 400));
+      let rateChange = 0;
+      let isCorrect = false;
+
+      if (Array.isArray(q.answer)) {
+        isCorrect = q.answer.some(ans => ans.toString().trim().toLowerCase() === userAnswer.toLowerCase());
+      } else {
+        isCorrect = (q.answer.toString().trim().toLowerCase() === userAnswer.toLowerCase());
+      }
+
+      if (isCorrect) {
+        result.textContent = "正解！";
+        result.style.color = "#00ffcc";
+        userSolved++;
+        q.isCleared = true;
+        createQuestionList(); 
         
-        <div class="exercise-card" style="max-width: 600px;">
-          <div style="margin-bottom: 16px;">
-            <label style="color: #94a3b8; display: block; margin-bottom: 8px; font-weight: bold;">使用するツールを選択:</label>
-            <select id="tool-select" onchange="switchMainTool()" style="padding: 10px; background-color: #111827; color: white; border: 1px solid #334155; border-radius: 6px; font-size: 16px; width: 100%;">
-              <option value="base64">Base64 デコード</option>
-              <option value="base32">Base32 デコード</option>
-              <option value="hex">Hex (16進数) デコード</option>
-              <option value="binary">Binary (2進数) デコード</option>
-              <option value="caesar">Caesar (シーザー暗号) デコード</option>
-              <option value="atbash">Atbash (アトバシュ暗号) デコード</option>
-              <option value="vigenere">Vigenere (ヴィジュネル暗号) 解読</option>
-              <option value="url">URL デコード</option>
-              <option value="html">HTMLエンティティ デコード</option>
-              <option value="ascii_dec">ASCII Decimal (10進数) デコード</option>
-              <option value="hash">ハッシュ値 識別 (MD5 / SHA1 / SHA256)</option>
-            </select>
-          </div>
-
-          <!-- 入力エリア -->
-          <div style="margin-bottom: 16px;">
-            <textarea id="tool-input" rows="4" class="tool-input" style="width: 100%; box-sizing: border-box;" placeholder="変換したい文字列を入力..."></textarea>
-          </div>
-
-          <!-- オプション入力（シフト数や鍵） -->
-          <div id="tool-extra-caesar" style="display: none; margin-bottom: 16px;">
-            <label style="color: #94a3b8; margin-right: 10px;">シフト量:</label>
-            <select id="tool-caesar-shift-select" style="padding: 8px; background: #111827; color: white; border: 1px solid #334155; border-radius: 6px;"></select>
-          </div>
-
-          <div id="tool-extra-vigenere" style="display: none; margin-bottom: 16px;">
-            <input type="text" id="tool-vigenere-key" class="tool-input" placeholder="鍵 (Key) を入力">
-          </div>
-
-          <!-- 実行ボタン -->
-          <button onclick="runSelectedMainTool()" class="exercise-submit-btn" style="width: 100%; font-weight: bold; margin-bottom: 16px;">実行</button>
-
-          <!-- 結果表示エリア -->
-          <div>
-            <p id="tool-main-result" style="font-family: monospace; background-color: #111827; padding: 12px 16px; border-radius: 6px; border: 1px solid #1f2937; min-height: 24px; color: #00ffcc; word-break: break-all; margin: 0;"></p>
-            <img id="tool-main-img" style="margin-top: 10px; max-width: 100%; display: none;">
-          </div>
-        </div>
-      </div>
-
-      <!-- 5. 解説・豆知識画面 -->
-      <div id="commentary-screen" class="page-screen">
-        <h1>暗号の解説 ＆ 豆知識</h1>
-        <p style="color: #94a3b8; margin-bottom: 24px;">CTFでよく狙われる主要な形式の特徴と、解析に役立つ豆知識です。</p>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">📝 Base64（ベースロクヨン）</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> データを「A〜Z」「a〜z」「0〜9」と「+」「/」の**計64種類の文字**だけで表現する形式です。厳密には暗号ではなく、データを扱いやすくするための「エンコード（符号化）」です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>末尾に <code style="color: #00ffcc;">=</code> や <code style="color: #00ffcc;">==</code> というパディング（穴埋め文字）がついていることが多い。</li>
-              <li>アルファベットの大文字・小文字・数字がランダムに混ざっている。</li>
-              <li>CTFでは、画像データ（PNGなど）をBase64に変換して問題に埋め込む手法が非常によく使われます。</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🔠 Base32（ベースサンニ）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> データを「A〜Z」の26文字と「2〜7」の6文字、計32種類の文字で表現するエンコード方式です。Base64と似ていますが、大文字のみで構成されるのが特徴です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>小文字が一切含まれず、数字も「2〜7」しか使われません（0, 1, 8, 9は不使用）。</li>
-              <li>末尾に <code style="color: #00ffcc;">=</code>（パディング）がつくことがありますが、Base64よりも多く連続すること（===など）があります。</li>
-              <li>CTFでは、一見すると大文字ばかりの謎の文字列として出題されることが多いです。</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🔢 Hex（16進数表記）</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> コンピュータの生データを人間の目に見えるように、**「0〜9」と「a〜f（またはA〜F）」の16種類の文字**で表現したものです。2文字で「1バイト」のデータを表します。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>文字の中に <code style="color: #00ffcc;">g</code> 以降のアルファベット（g, h, i...など）が**絶対に出てこない**のが最大の特徴。</li>
-              <li>先頭に <code style="color: #00ffcc;">0x</code> がついていたり、2文字ごとにスペースで区切られていることが多い。</li>
-              <li>CTFでは、ファイルの先頭データ（マジックナンバー）をHexで読み解き、隠されたファイル形式（PNGなら <code style="color: #00ffcc;">89 50 4E 47</code>）を突き止める際に必須の知識になります。</li>
-            </ul>
-          </div>
-        </div>
+        // ==========================================
+        // ★変更: 正解時にクリアタイムを記録しタイマー停止
+        // ==========================================
+        addClearRecord(q.question, currentSeconds);
+        stopTimer();
         
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🔟 ASCII Decimal（10進数）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> 文字をコンピュータで扱うための「ASCIIコード」を、私たちが日常的に使う10進数（0〜9の数字）で表したものです。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li><code style="color: #00ffcc;">65</code>（A）から <code style="color: #00ffcc;">122</code>（z）あたりの2桁〜3桁の数字がスペース区切りで並んでいるのが最大の特徴です。</li>
-              <li>CTFのフラグ形式（CTF{...}）によく使われる文字は、<code style="color: #00ffcc;">67 84 70 123</code> のように見えます（67=C, 84=T, 70=F, 123={）。</li>
-              <li>単なる数字の羅列に見えるため、Hex（16進数）やOctal（8進数）と間違えないよう数値の範囲を観察するのがコツです。</li>
-            </ul>
-          </div>
-        </div>
+        let dynamicK = 32 + (diff > 0 ? diff / 5 : 0);
+        rateChange = Math.round(dynamicK * (1 - expectedScore));
+        userRate += rateChange;
+        updateStatusDOM();
+        autoSaveData();
+        setTimeout(() => {
+          document.getElementById("answer").value = "";
+          loadNextQuestion(); 
+        }, 1500);
+      } else {
+        result.textContent = "不正解...";
+        result.style.color = "#ef4444";
+        const penaltyDiff = diff < 0 ? Math.abs(diff) : 0;
+        let dynamicK = 32 + (penaltyDiff / 5);
+        let rawLoss = Math.round(dynamicK * (0 - expectedScore));
+        const MAX_LOSS = -75;
+        rateChange = Math.max(rawLoss, MAX_LOSS);
+        userRate = Math.max(0, userRate + rateChange);
+        updateStatusDOM();
+        autoSaveData();
+        setTimeout(() => {
+          isSubmitting = false;
+        }, 400);
+      }
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">💻 Binary（2進数表記）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> コンピュータの最小単位である**「0」と「1」だけ**で表現されたデータです。ASCIIコードでは、通常8桁（1バイト）のペアで1つのアルファベットや記号を表します。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li><code style="color: #00ffcc;">01000001</code> のように、「0」と「1」しか出現しないのが最大の特徴。</li>
-              <li>8桁（または8の倍数の桁数）ごとにスペースで区切られていることが多い。</li>
-              <li>CTFでは、通信の生データ解析やシリアル通信のキャプチャデータなどで頻出します。</li>
-            </ul>
-          </div>
-        </div>
+    // セーブ・ロード機能
+    function autoSaveData() {
+      saveDataToStorage();
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🏛️ Caesar 暗号（シーザー暗号）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> アルファベットを指定した文字数分だけ「ずらす」古典的な暗号方式です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>文字数（26文字）が決まっているため、最大25パターンを試す「ブルートフォース（総当たり）」で簡単に解読可能です。</li>
-              <li>13文字ずらす設定は特に <code style="color: #00ffcc;">ROT13</code> と呼ばれ、ネット上のネタバレ防止にも広く使われています。</li>
-            </ul>
-          </div>
-        </div>
+    function manualSaveData() {
+      const confirmSave = confirm("現在の学習記録をセーブしますか？");
+      if (!confirmSave) return;
+      saveDataToStorage();
+      const msg = document.getElementById("save-msg");
+      if (msg) {
+        msg.textContent = "✔ 学習記録を正常にセーブしました！";
+        msg.style.color = "#00ffcc";
+        setTimeout(() => { msg.textContent = ""; }, 3000);
+      }
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🔄 Atbash 暗号（アトバシュ暗号）</h3>
-            <span class="exercise-difficulty">頻出度: ★☆☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> アルファベットの順序を完全に対称に反転させる暗号です（A ↔ Z、B ↔ Y ...）。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>暗号化と復号化（元の文に戻す処理）が全く同じアルゴリズムで行える特徴を持っています。</li>
-            </ul>
-          </div>
-        </div>
+    function saveDataToStorage() {
+      const clearedIndices = questions
+        .map((q, idx) => q.isCleared ? idx : null)
+        .filter(idx => idx !== null);
+      const saveData = {
+        userRate: userRate,
+        userSolved: userSolved,
+        userAttempts: userAttempts,
+        currentQuestion: currentQuestion,
+        clearedIndices: clearedIndices,
+        totalSeconds: totalSeconds
+      };
+      localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🗝️ Vigenere 暗号（ヴィジュネル暗号）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> 「鍵（Key）」となるキーワードの各文字を使って、アルファベットのずらし量を文字ごとに変化させる古典的な多表式暗号です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>暗号文と同時に「KEY」や「SECRET」といった文字列（鍵）が与えられるのが特徴。</li>
-              <li>シーザー暗号と異なり、同じ文字でも位置によって異なる文字に暗号化されるため解読が少し複雑になります。</li>
-              <li>記号（<code style="color: #00ffcc;">_</code> や <code style="color: #00ffcc;">{</code> など）はシフト処理を行わず、鍵の進みもスキップするのが標準的なルールです。</li>
-            </ul>
-          </div>
-        </div>
+    function loadSaveData() {
+      const json = localStorage.getItem("ctf_learning_data");
+      if (!json) return;
+      try {
+        const data = JSON.parse(json);
+        if (data.userRate !== undefined) userRate = data.userRate;
+        if (data.userSolved !== undefined) userSolved = data.userSolved;
+        if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
+        if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
+        if (data.totalSeconds !== undefined) totalSeconds = data.totalSeconds; 
+        
+        if (Array.isArray(data.clearedIndices)) {
+          data.clearedIndices.forEach(idx => {
+            if (questions[idx]) questions[idx].isCleared = true;
+          });
+        }
+        updateStatusDOM();
+        updateDisplay();
+      } catch(e) {
+        console.error("セーブデータの読み込み失敗:", e);
+      }
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🌐 URLエンコード（パーセントエンコーディング）</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> Webブラウザのアドレスバーなどで、スペースや特殊文字を安全に送信するために**「% + 16進数2桁」**に変換する方式です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>文字列の中に <code style="color: #00ffcc;">%20</code> や <code style="color: #00ffcc;">%48%65%6c</code> のように <code style="color: #00ffcc;">%</code> が連続して出現するのが目印。</li>
-              <li>Webセキュリティの分野（SQLインジェクションやXSSなどの攻撃ペイロード分析）で頻繁に遭遇します。</li>
-            </ul>
-          </div>
-        </div>
+    function resetSaveData() {
+      const confirmFirst = confirm("本当に学習記録を完全消去しますか？\n（この操作は取り消せません）");
+      if (!confirmFirst) return;
+      localStorage.removeItem("ctf_learning_data");
+      
+      userRate = 1000;
+      userSolved = 0;
+      userAttempts = 0;
+      currentQuestion = 0;
+      totalSeconds = 0;
+      
+      questions.forEach(q => { q.isCleared = false; });
+      
+      updateStatusDOM();
+      updateDisplay();
+      createQuestionList();
+      showQuestion();
+      
+      const msg = document.getElementById("save-msg");
+      if (msg) {
+        msg.textContent = "⚠ すべての学習記録をリセットしました。";
+        msg.style.color = "#ef4444";
+        setTimeout(() => { msg.textContent = ""; }, 3000);
+      }
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🏷️ HTMLエンティティ（実体参照）</h3>
-            <span class="exercise-difficulty">頻出度: ★★☆</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> Webページ上でタグとして誤認される可能性のある記号（<code style="color: #00ffcc;">&lt;</code> や <code style="color: #00ffcc;">&gt;</code> など）を、安全に画面表示するために特殊な文字列へとエスケープする形式です。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li>先頭が <code style="color: #00ffcc;">&</code>（アンパサンド）で始まり、末尾が <code style="color: #00ffcc;">;</code>（セミコロン）で終わるのが基本形（例: <code style="color: #00ffcc;">&amp;lt;</code> = <code style="color: #00ffcc;">&lt;</code>）。</li>
-              <li>Webサイトのソースコードを読み解くCTF問題（Webジャンル）でよく出題されます。</li>
-            </ul>
-          </div>
-        </div>
+    // ツール系処理
+    function runInlineBase32() {
+      decodeBase32Logic('tool-base32-input', 'tool-base32-result');
+    }
 
-        <div class="exercise-card">
-          <div class="exercise-header">
-            <h3 style="color: #38bdf8;">🔒 暗号学的ハッシュ値（Hash）</h3>
-            <span class="exercise-difficulty">頻出度: ★★★</span>
-          </div>
-          <div class="exercise-body">
-            <p><strong>【特徴】</strong> 入力データから固定長の不可逆な値を生成するアルゴリズムです。元データへの復元は基本的に不可能で、文字の長さ（桁数）でアルゴリズムを推測します。</p>
-            <p><strong>【豆知識・見分け方】</strong></p>
-            <ul>
-              <li><strong>MD5:</strong> 32桁の16進数（128ビット）</li>
-              <li><strong>SHA-1:</strong> 40桁の16進数（160ビット）</li>
-              <li><strong>SHA-256:</strong> 64桁の16進数（256ビット）</li>
-              <li>16進数（0〜9, a〜f）のみで構成されており、桁数を見るだけで一発で識別できます。</li>
-            </ul>
-          </div>
-        </div>
+    function decodeBase32Logic(inputId, resultId) {
+      const input = document.getElementById(inputId).value.trim();
+      if (!input) return;
+      const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      let bits = "";
+      let decoded = "";
+      const cleanInput = input.toUpperCase().replace(/=+$/, "");
+      try {
+        for (let i = 0; i < cleanInput.length; i++) {
+          const val = base32chars.indexOf(cleanInput.charAt(i));
+          if (val === -1) {
+            throw new Error("Invalid Base32 character");
+          }
+          bits += val.toString(2).padStart(5, '0');
+        }
+        for (let i = 0; i + 8 <= bits.length; i += 8) {
+          const chunk = bits.substr(i, 8);
+          if (chunk.length === 8) {
+            decoded += String.fromCharCode(parseInt(chunk, 2));
+          }
+        }
+        showResult(resultId, decoded, false);
+      } catch(e) {
+        showResult(resultId, 'デコード失敗（正しいBase32ではありません）', true);
+      }
+    }
 
-      </div>
+    function runInlineAsciiDec() {
+      decodeAsciiDecLogic('inline-ascii_dec-input', 'inline-ascii_dec-result');
+    }
 
-      <!-- 6. セーブ・記録画面 -->
-      <div id="save-screen" class="page-screen">
-        <h1>セーブ・記録</h1>
-        <p style="color: #94a3b8; margin-bottom: 20px;">現在のあなたのプレイ実績です。回答するたびに自動保存（オートセーブ）されます。</p>
+    function decodeAsciiDecLogic(inputId, resultId) {
+      const input = document.getElementById(inputId).value.trim();
+      if (!input) return;
+      try {
+        const numbers = input.split(/[\s,]+/);
+        let decoded = "";
+        for (let numStr of numbers) {
+          if (!numStr) continue;
+          const num = parseInt(numStr, 10);
+          if (isNaN(num)) throw new Error("Not a number");
+          decoded += String.fromCharCode(num);
+        }
+        if (decoded.length === 0) {
+          showResult(resultId, 'デコード失敗（正しい10進数の数列ではありません）', true);
+          return;
+        }
+        showResult(resultId, decoded, false);
+      } catch (e) {
+        showResult(resultId, 'デコード失敗（正しい10進数の数列ではありません）', true);
+      }
+    }
 
-        <div class="exercise-card" style="max-width: 500px;">
-          <div style="line-height: 2.2; font-size: 16px;">
-            <p>現在のレート: <strong id="save-rate" style="color: #00ffcc; font-size: 20px;">1000</strong></p>
-            <p>クリア問題数: <strong id="save-solved" style="color: #00ffcc; font-size: 20px;">0</strong></p>
-            <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc; font-size: 20px;">0</strong></p>
-            <p>現在の正答率: <strong id="save-accuracy" style="color: #00ffcc; font-size: 20px;">0%</strong></p>
-          </div>
-                  <!--★ 既存の正答率の下に追加 -->
-          <div class="stat-row divider">
-            <span>総経過時間 (計測時間):</span>
-            <div class="stat-time-col">
-              <span id="total-time-ja" class="highlight-green">0分00秒</span>
-              <span id="total-time-ms" class="sub-text">(00:00)</span>
-            </div>
-          </div>
-          <div class="stat-row">
-            <span>現在の問題の計測タイム:</span>
-            <span id="current-quest-time" class="highlight-blue">00:00</span>
-          </div>
-          
-          <!-- クリアタイム記録一覧 -->
-          <div class="clear-time-container">
-            <p class="clear-time-title">クリアタイム記録一覧:</p>
-            <ul id="clear-time-list" class="clear-time-list">
-              <!-- JSで動的に追加される要素の例 -->
-            </ul>
-          </div>
-          <!-- ★追加: セーブ・リセット操作ボタン領域 -->
-          <div style="margin-top: 24px; border-top: 1px solid #1f2937; padding-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-            <button type="button" onclick="manualSaveData()" class="exercise-submit-btn" style="background-color: #0284c7;">
-              💾 手動セーブ
-            </button>
-            <button type="button" onclick="resetSaveData()" class="exercise-submit-btn" style="background-color: #dc2626;">
-              🗑️ データリセット（消去）
-            </button>
-          </div>
+    function runBase64() {
+      decodeBase64Logic('tool-base64-input', 'tool-base64-result', 'tool-base64-img');
+    }
 
-          <!-- ★追加: 保存/消去完了時の通知メッセージ -->
-          <p id="save-msg" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
-        </div>
-      </div>
+    function decodeBase64Logic(inputId, resultId, imgId) {
+      let input = document.getElementById(inputId).value.trim();
+      const resultText = document.getElementById(resultId);
+      const resultImg = document.getElementById(imgId);
+      
+      if (resultText) resultText.textContent = "";
+      if (resultImg) {
+        resultImg.style.display = "none";
+        resultImg.src = "";
+      }
+      if (!input) return;
 
-    </main>
-  </div>
+      let isImageUri = input.startsWith('data:image');
+      let mimeType = 'image/png'; 
+
+      if (isImageUri) {
+        if (input.includes('image/jpeg') || input.includes('image/jpg')) mimeType = 'image/jpeg';
+        if (input.includes('image/gif')) mimeType = 'image/gif';
+        input = input.split(',')[1].trim();
+      }
+
+      try {
+        const lowerInput = input.toLowerCase();
+        if (isImageUri || lowerInput.startsWith('ivborw') || lowerInput.startsWith('/9j/') || lowerInput.startsWith('r0lg')) {
+          if (!isImageUri) {
+            if (lowerInput.startsWith('/9j/')) mimeType = 'image/jpeg';
+            if (lowerInput.startsWith('r0lg')) mimeType = 'image/gif';
+          }
+          if (resultImg) {
+            resultImg.src = `data:${mimeType};base64,${input}`;
+            resultImg.style.display = "block"; 
+            resultImg.onload = refreshDropdownHeight;
+          }
+          showResult(resultId, '画像のデコードに成功しました！', false);
+        } else {
+          const binString = atob(input);
+          const bytes = Uint8Array.from(binString, function(c) { return c.charCodeAt(0); });
+          const decoded = new TextDecoder().decode(bytes);
+          showResult(resultId, decoded, false);
+        }
+      } catch(e) {
+        showResult(resultId, 'デコード失敗（正しいBase64ではありません）', true);
+      }
+    }
+
+    function runHex() {
+      decodeHexLogic('tool-hex-input', 'tool-hex-result');
+    }
+
+    function decodeHexLogic(inputId, resultId) {
+      const input = document.getElementById(inputId).value.trim();
+      if (!input) return;
+      try {
+        const hex = input.replace(/\s+/g, '').replace(/0x/gi, '');  
+        const decoded = hex.match(/.{1,2}/g).map(function(b) {
+          return String.fromCharCode(parseInt(b, 16));
+        }).join('');
+        showResult(resultId, decoded, false);
+      } catch(e) {
+        showResult(resultId, 'デコード失敗（正しい16進数ではありません）', true);
+      }
+    }
+
+    function runInlineBinary() {
+      decodeBinaryLogic('inline-binary-input', 'inline-binary-result');
+    }
+
+    function decodeBinaryLogic(inputId, resultId) {
+      const input = document.getElementById(inputId).value.trim();
+      if (!input) return;
+      try {
+        const cleanBin = input.replace(/\s+/g, '');
+        const decoded = cleanBin.match(/.{1,8}/g).map(b => String.fromCharCode(parseInt(b, 2))).join('');
+        showResult(resultId, decoded, false);
+      } catch(e) {
+        showResult(resultId, 'デコード失敗（正しい2進数ではありません）', true);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const selects = [
+        document.getElementById("tool-caesar-shift-select"),
+        document.getElementById("inline-caesar-shift")
+      ];
+      selects.forEach(select => {
+        if (select) {
+          select.innerHTML = "";
+          for (let i = 1; i <= 25; i++) {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = `${i}文字戻す`;
+            if (i === 13) opt.textContent += " (ROT13)";
+            select.appendChild(opt);
+          }
+        }
+      });
+
+      // ==========================================
+      // ★変更: タイマーボタンの役割を「停止/再開」へ
+      // ==========================================
+      const toggleBtn = document.getElementById('timer-start-btn');
+      const resetBtn = document.getElementById('timer-reset-btn');
+
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            stopTimer();
+            currentSeconds = 0;
+            updateDisplay();
+        });
+      }
+    });
+
+    function runInlineCaesar() {
+      const input = document.getElementById("inline-caesar-input").value;
+      const shiftSelect = document.getElementById("inline-caesar-shift");
+      const shift = shiftSelect ? parseInt(shiftSelect.value, 10) : 1;
+      if (!input) return;
+      showResult("inline-caesar-result", decodeCaesarLogic(input, shift), false);
+    }
+
+    function runInlineAtbash() {
+      const input = document.getElementById("inline-atbash-input").value;
+      if (!input) return;
+      showResult("inline-atbash-result", decodeAtbashLogic(input), false);
+    }
+
+    function decodeCaesarLogic(input, shift) {
+      return input.replace(/[a-zA-Z]/g, (char) => {
+        const code = char.charCodeAt(0);
+        if (code >= 65 && code <= 90) {
+          return String.fromCharCode(((code - 65 - shift + 26) % 26) + 65);
+        }
+        if (code >= 97 && code <= 122) {
+          return String.fromCharCode(((code - 97 - shift + 26) % 26) + 97);
+        }
+        return char;
+      });
+    }
+
+    function decodeAtbashLogic(input) {
+      return input.replace(/[a-zA-Z]/g, (char) => {
+        const code = char.charCodeAt(0);
+        if (code >= 65 && code <= 90) {
+          return String.fromCharCode(155 - code);
+        }
+        if (code >= 97 && code <= 122) {
+          return String.fromCharCode(219 - code);
+        }
+        return char;
+      });
+    }
+
+    function runInlineVigenere() {
+      const input = document.getElementById("inline-vigenere-input").value.trim();
+      const key = document.getElementById("inline-vigenere-key").value.trim();
+      if (!input) return;
+      if (!key) {
+        showResult("inline-vigenere-result", "鍵(Key)を入力してください", true);
+        return;
+      }
+      showResult("inline-vigenere-result", decodeVigenereLogic(input, key), false);
+    }
+
+    function decodeVigenereLogic(cipherText, key) {
+      let result = "";
+      const cleanKey = key.toUpperCase();
+      let extendedKey = "";
+      let keyIndex = 0;
+      
+      for (let i = 0; i < cipherText.length; i++) {
+        let charCode = cipherText.charCodeAt(i);
+        if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+          extendedKey += cleanKey[keyIndex % cleanKey.length];
+          keyIndex++;
+        } else {
+          extendedKey += " ";
+        }
+      }
+
+      for (let i = 0; i < cipherText.length; i++) {
+        let charCode = cipherText.charCodeAt(i);
+        if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+          let base = (charCode >= 65 && charCode <= 90) ? 65 : 97;
+          let cipherNum = charCode - base;
+          let keyNum = extendedKey.charCodeAt(i) - 65;
+          let plainNum = cipherNum - keyNum;
+          if (plainNum < 0) {
+            plainNum += 26;
+          }
+          result += String.fromCharCode(plainNum + base);
+        } else {
+          result += cipherText[i];
+        }
+      }
+      return result;
+    }
+
+    function runInlineUrl() {
+      const input = document.getElementById("inline-url-input").value.trim();
+      if (!input) return;
+      try {
+        showResult("inline-url-result", decodeURIComponent(input), false);
+      } catch(e) {
+        showResult("inline-url-result", "デコード失敗", true);
+      }
+    }
+
+    function runInlineHtml() {
+      const input = document.getElementById("inline-html-input").value.trim();
+      if (!input) return;
+      const doc = new DOMParser().parseFromString(input, 'text/html');
+      showResult("inline-html-result", doc.body.textContent, false);
+    }
+
+    function runInlineHash() {
+      const input = document.getElementById("inline-hash-input").value.trim();
+      if (!input) return;
+      showResult("inline-hash-result", identifyHashLogic(input), false);
+    }
+
+    function identifyHashLogic(hash) {
+      const cleanHash = hash.replace(/\s+/g, '');
+      const len = cleanHash.length;
+      const isHex = /^[a-fA-F0-9]+$/.test(cleanHash);
+
+      if (!isHex) return "エラー: 16進数文字列ではありません";
+      switch (len) {
+        case 32:  return "識別結果: MD5 (32文字 / 128bit)";
+        case 40:  return "識別結果: SHA-1 (40文字 / 160bit)";
+        case 64:  return "識別結果: SHA-256 (64文字 / 256bit)";
+        default:  return `該当なし (${len}文字のハッシュ値です)`;
+      }
+    }
+
+    function runSelectedMainTool() {
+      const tool = document.getElementById('tool-select').value;
+      const input = document.getElementById('tool-input').value.trim();
+      const imgElement = document.getElementById('tool-main-img');
+
+      if (imgElement) imgElement.style.display = 'none';
+      if (!input) {
+        showResult('tool-main-result', '入力が空です', true);
+        return;
+      }
+
+      try {
+        switch (tool) {
+          case 'base64':
+            decodeBase64Logic('tool-input', 'tool-main-result', 'tool-main-img');
+            break;
+          case 'base32':
+            decodeBase32Logic('tool-input', 'tool-main-result');
+            break;
+          case 'ascii_dec':
+            decodeAsciiDecLogic('tool-input', 'tool-main-result');
+            break;
+          case 'hex':
+            decodeHexLogic('tool-input', 'tool-main-result');
+            break;
+          case 'binary':
+            decodeBinaryLogic('tool-input', 'tool-main-result');
+            break;
+          case 'caesar':
+            const shift = parseInt(document.getElementById('tool-caesar-shift-select').value, 10);
+            showResult('tool-main-result', decodeCaesarLogic(input, shift), false);
+            break;
+          case 'atbash':
+            showResult('tool-main-result', decodeAtbashLogic(input), false);
+            break;
+          case 'vigenere':
+            const key = document.getElementById('tool-vigenere-key').value.trim();
+            if (!key) {
+              showResult('tool-main-result', '鍵(Key)を入力してください', true);
+              return;
+            }
+            showResult('tool-main-result', decodeVigenereLogic(input, key), false);
+            break;
+          case 'url':
+            showResult('tool-main-result', decodeURIComponent(input), false);
+            break;
+          case 'html':
+            const doc = new DOMParser().parseFromString(input, 'text/html');
+            showResult('tool-main-result', doc.body.textContent, false);
+            break;
+          case 'hash':
+            showResult('tool-main-result', identifyHashLogic(input), false);
+            break;
+        }
+      } catch(e) {
+        showResult('tool-main-result', '処理に失敗しました', true);
+      }
+    }
+
+    function showResult(resultId, message, isError) {
+      const resultElement = document.getElementById(resultId);
+      if (resultElement) {
+        resultElement.textContent = message;
+        if (isError) {
+          resultElement.style.color = "#ef4444"; 
+        } else {
+          resultElement.style.color = "#00ffcc"; 
+        }
+      }
+      refreshDropdownHeight();
+    }
+
+    function createQuestionList() {
+      const listContainer = document.getElementById("question-list");
+      if (!listContainer) return;
+      listContainer.innerHTML = "";
+      listContainer.removeAttribute("style");
+      listContainer.className = "question-list";
+
+      questions.forEach((q, index) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "question-row" + (q.isCleared ? " cleared" : "");
+        
+        const label = document.createElement("span");
+        label.className = "question-row-label";
+        label.textContent = "Q " + (index + 1);
+        
+        const text = document.createElement("span");
+        text.className = "question-row-text";
+        text.textContent = String(q.question).split("\n")[0];
+        
+        const leader = document.createElement("span");
+        leader.className = "question-row-leader";
+        
+        const meta = document.createElement("span");
+        meta.className = "question-row-meta";
+        meta.textContent = (q.isCleared ? "✓ " : "") + q.difficulty;
+        
+        row.append(label, text, leader, meta);
+        row.onclick = function() {
+          selectQuestion(index);
+        };
+        listContainer.appendChild(row);
+      });
+    }
+
+    function selectQuestion(index) {
+      currentQuestion = index; 
+      showQuestion();            
+      document.getElementById("result").textContent = "";
+      document.getElementById("answer").value = "";
+      lastSubmittedAnswer = "";
+      isSubmitting = false;
+      showScreen("play-screen"); 
+    }
+
+    function toggleHint() {
+      const panel = document.getElementById("hint-panel");
+      if (!panel) return;
+      if (panel.classList.contains("open")) {
+        panel.style.maxHeight = "0px";
+        panel.classList.remove("open");
+      } else {
+        panel.classList.add("open");
+        panel.style.maxHeight = panel.scrollHeight + "px";
+      }
+    }
+
+    function updateHintData(questionData) {
+      const hintText = document.getElementById("hint-text");
+      const panel = document.getElementById("hint-panel");
+      if (!hintText || !panel) return;
+      if (questionData && questionData.hint) {
+        hintText.innerHTML = questionData.hint;
+      } else {
+        hintText.innerHTML = "この問題にヒントはありません。";
+      }
+      panel.style.maxHeight = "0px";
+      panel.classList.remove("open");
+    }
+  </script>
+</body>
+</html>
