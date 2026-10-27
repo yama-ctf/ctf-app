@@ -21,95 +21,6 @@ function showScreen(screenId) {
   }
 }
 
-  // ==========================================
-// ★ タイマー機能 ＆ 総経過時間の管理
-// ==========================================
-let timerInterval = null;
-let timerSeconds = 0;       // 現在の問題のタイマー（秒）
-let totalElapsedSeconds = 0;// 累計経過時間（秒）
-let isTimerRunning = false;
-
-// 開始 / 停止切り替え
-function toggleTimer() {
-  if (isTimerRunning) {
-    stopTimer();
-  } else {
-    startTimer();
-  }
-}
-
-// 計測開始
-function startTimer() {
-  if (isTimerRunning) return;
-  isTimerRunning = true;
-  
-  const btn = document.getElementById("timer-toggle-btn");
-  const container = document.querySelector(".timer-container");
-  if (btn) {
-    btn.textContent = "停止";
-    btn.classList.add("running");
-  }
-  if (container) container.classList.add("running");
-
-  timerInterval = setInterval(() => {
-    timerSeconds++;
-    totalElapsedSeconds++; // 総経過時間も加算
-    updateTimerDOM();
-  }, 1000);
-}
-
-// 計測停止
-function stopTimer() {
-  isTimerRunning = false;
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-  const btn = document.getElementById("timer-toggle-btn");
-  const container = document.querySelector(".timer-container");
-  if (btn) {
-    btn.textContent = timerSeconds > 0 ? "再開" : "開始";
-    btn.classList.remove("running");
-  }
-  if (container) container.classList.remove("running");
-}
-
-// リセット (00:00に戻す)
-function resetTimer() {
-  stopTimer();
-  timerSeconds = 0;
-  updateTimerDOM();
-  const btn = document.getElementById("timer-toggle-btn");
-  if (btn) btn.textContent = "開始";
-}
-
-// タイマー表示 ＆ セーブ画面の経過時間表示を更新
-function updateTimerDOM() {
-  const display = document.getElementById("timer-display");
-  if (display) {
-    const mins = Math.floor(timerSeconds / 60);
-    const secs = timerSeconds % 60;
-    display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  }
-
-  // セーブ画面の総経過時間表示もリアルタイム更新
-  const saveElapsed = document.getElementById("save-elapsed");
-  if (saveElapsed) {
-    saveElapsed.textContent = formatDuration(totalElapsedSeconds);
-  }
-}
-
-// 秒数を「○時間○分○秒」または「○分○秒」に変換
-function formatDuration(totalSeconds) {
-  const hrs = Math.floor(totalSeconds / 3600);
-  const mins = Math.floor((totalSeconds % 3600) / 60);
-  const secs = totalSeconds % 60;
-  if (hrs > 0) {
-    return `${hrs}時間${String(mins).padStart(2, '0')}分${String(secs).padStart(2, '0')}秒`;
-  }
-  return `${mins}分${String(secs).padStart(2, '0')}秒`;
-}
-
 // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
@@ -366,7 +277,7 @@ function manualSaveData() {
   }
 }
 
-// 共通保存処理: totalElapsedSeconds を保存対象に追加
+// 実際の保存処理共通部
 function saveDataToStorage() {
   const clearedIndices = questions
     .map((q, idx) => q.isCleared ? idx : null)
@@ -377,14 +288,13 @@ function saveDataToStorage() {
     userSolved: userSolved,
     userAttempts: userAttempts,
     currentQuestion: currentQuestion,
-    clearedIndices: clearedIndices,
-    totalElapsedSeconds: totalElapsedSeconds // ★追加
+    clearedIndices: clearedIndices
   };
 
   localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
 }
 
-// 読み込み処理: totalElapsedSeconds を復元
+// ページ読み込み時にデータを復元
 function loadSaveData() {
   const json = localStorage.getItem("ctf_learning_data");
   if (!json) return;
@@ -395,9 +305,6 @@ function loadSaveData() {
     if (data.userSolved !== undefined) userSolved = data.userSolved;
     if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
     if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
-    if (data.totalElapsedSeconds !== undefined) {
-      totalElapsedSeconds = data.totalElapsedSeconds; // ★追加
-    }
 
     if (Array.isArray(data.clearedIndices)) {
       data.clearedIndices.forEach(idx => {
@@ -406,30 +313,28 @@ function loadSaveData() {
     }
 
     updateStatusDOM();
-    updateTimerDOM(); // ★追加: セーブ画面の経過時間テキストを反映
   } catch(e) {
     console.error("セーブデータの読み込み失敗:", e);
   }
 }
 
-// リセット処理: totalElapsedSeconds を 0 に初期化
+// セーブデータの全消去（リセット機能）
 function resetSaveData() {
   const confirmFirst = confirm("本当に学習記録を完全消去しますか？\n（この操作は取り消せません）");
   if (!confirmFirst) return;
 
   localStorage.removeItem("ctf_learning_data");
 
+  // ステータスを初期化
   userRate = 1000;
   userSolved = 0;
   userAttempts = 0;
   currentQuestion = 0;
-  totalElapsedSeconds = 0; // ★追加
-  resetTimer();            // ★追加: 現在のタイマーも停止・リセット
 
+  // 問題のクリアフラグをリセット
   questions.forEach(q => { q.isCleared = false; });
 
   updateStatusDOM();
-  updateTimerDOM();
   createQuestionList();
   showQuestion();
 
