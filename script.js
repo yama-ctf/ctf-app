@@ -366,7 +366,7 @@ function manualSaveData() {
   }
 }
 
-// 実際の保存処理共通部
+// 共通保存処理: totalElapsedSeconds を保存対象に追加
 function saveDataToStorage() {
   const clearedIndices = questions
     .map((q, idx) => q.isCleared ? idx : null)
@@ -377,13 +377,14 @@ function saveDataToStorage() {
     userSolved: userSolved,
     userAttempts: userAttempts,
     currentQuestion: currentQuestion,
-    clearedIndices: clearedIndices
+    clearedIndices: clearedIndices,
+    totalElapsedSeconds: totalElapsedSeconds // ★追加
   };
 
   localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
 }
 
-// ページ読み込み時にデータを復元
+// 読み込み処理: totalElapsedSeconds を復元
 function loadSaveData() {
   const json = localStorage.getItem("ctf_learning_data");
   if (!json) return;
@@ -394,6 +395,9 @@ function loadSaveData() {
     if (data.userSolved !== undefined) userSolved = data.userSolved;
     if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
     if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
+    if (data.totalElapsedSeconds !== undefined) {
+      totalElapsedSeconds = data.totalElapsedSeconds; // ★追加
+    }
 
     if (Array.isArray(data.clearedIndices)) {
       data.clearedIndices.forEach(idx => {
@@ -402,28 +406,30 @@ function loadSaveData() {
     }
 
     updateStatusDOM();
+    updateTimerDOM(); // ★追加: セーブ画面の経過時間テキストを反映
   } catch(e) {
     console.error("セーブデータの読み込み失敗:", e);
   }
 }
 
-// セーブデータの全消去（リセット機能）
+// リセット処理: totalElapsedSeconds を 0 に初期化
 function resetSaveData() {
   const confirmFirst = confirm("本当に学習記録を完全消去しますか？\n（この操作は取り消せません）");
   if (!confirmFirst) return;
 
   localStorage.removeItem("ctf_learning_data");
 
-  // ステータスを初期化
   userRate = 1000;
   userSolved = 0;
   userAttempts = 0;
   currentQuestion = 0;
+  totalElapsedSeconds = 0; // ★追加
+  resetTimer();            // ★追加: 現在のタイマーも停止・リセット
 
-  // 問題のクリアフラグをリセット
   questions.forEach(q => { q.isCleared = false; });
 
   updateStatusDOM();
+  updateTimerDOM();
   createQuestionList();
   showQuestion();
 
