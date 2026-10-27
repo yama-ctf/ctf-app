@@ -8,6 +8,59 @@ let userAttempts = 0;   // 試行回数
 let lastSubmittedAnswer = ""; 
 let isSubmitting = false; // 【連打防止】送信処理中フラグ
 
+// ==========================================
+// ★追加: タイマー用の変数群
+// ==========================================
+let timerInterval;
+let currentSeconds = 0;
+let totalSeconds = 0;
+let isPlaying = false;
+
+// ==========================================
+// ★追加: タイマーフォーマット・表示更新・記録関数
+// ==========================================
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function formatTimeJa(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}分${s}秒`;
+}
+
+function updateDisplay() {
+  const currentFormatted = formatTime(currentSeconds);
+  const currentTimerEl = document.getElementById('current-timer');
+  const currentQuestTimeEl = document.getElementById('current-quest-time');
+  const totalTimeJaEl = document.getElementById('total-time-ja');
+  const totalTimeMsEl = document.getElementById('total-time-ms');
+
+  if (currentTimerEl) currentTimerEl.textContent = currentFormatted;
+  if (currentQuestTimeEl) currentQuestTimeEl.textContent = currentFormatted;
+  
+  if (totalTimeJaEl) {
+      totalTimeJaEl.textContent = formatTimeJa(totalSeconds);
+      if (totalTimeMsEl) totalTimeMsEl.textContent = `(${formatTime(totalSeconds)})`;
+  }
+}
+
+function addClearRecord(questionTitle, seconds) {
+  const list = document.getElementById('clear-time-list');
+  if (!list) return;
+  const li = document.createElement('li');
+  
+  // タイトルを丸める処理（20文字程度）
+  const shortTitle = questionTitle.length > 20 ? questionTitle.substring(0, 20) + '...' : questionTitle;
+  
+  li.innerHTML = `<span class="quest-title">${shortTitle}</span><span class="time-badge"><i class="fas fa-stopwatch"></i> ${formatTime(seconds)}</span>`;
+  list.prepend(li); // 最新を一番上に追加
+}
+// ==========================================
+
+
 // 画面切り替え関数
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
@@ -35,9 +88,6 @@ function toggleDropdown() {
   }
 }
 
-// 簡易解析ツールのパネルが開いている場合、
-// 中身の高さが変わった後（デコード結果の表示・画像表示など）に
-// max-heightを再計算して、結果が見切れないようにする関数
 function refreshDropdownHeight() {
   const dropdown = document.getElementById('tools-dropdown');
   if (dropdown && dropdown.style.maxHeight && dropdown.style.maxHeight !== '0px') {
@@ -45,7 +95,6 @@ function refreshDropdownHeight() {
   }
 }
 
-// 簡易解析ツールの切り替え関数（全ツール対応版）
 function switchInlineTool() {
   const selected = document.getElementById('inline-tool-selector').value;
   const areas = {
@@ -67,12 +116,9 @@ function switchInlineTool() {
       areas[key].style.display = (key === selected) ? 'block' : 'none';
     }
   }
-
-  // アコーディオンの高さ自動調整
   refreshDropdownHeight();
 }
 
-// 独立画面ツールの表示切替関数
 function switchMainTool() {
   const tool = document.getElementById('tool-select').value;
   const caesarExtra = document.getElementById('tool-extra-caesar');
@@ -102,15 +148,20 @@ function showQuestion() {
 
   // 問題が表示されるタイミングでヒント内容も更新する
   updateHintData(q);
+
+  // ==========================================
+  // ★追加: 別の問題が表示された時は現在の秒数をリセットして表示更新
+  // ==========================================
+  currentSeconds = 0;
+  updateDisplay();
 }
 
-// 未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
 function pickNextQuestionIndex() {
   let bestDiff = Infinity;
   let candidates = [];
 
   questions.forEach((q, i) => {
-    if (q.isCleared) return; // クリア済みは除外
+    if (q.isCleared) return; 
 
     const diff = Math.abs((Number(q.difficulty) || 1200) - userRate);
     if (diff < bestDiff) {
@@ -121,12 +172,10 @@ function pickNextQuestionIndex() {
     }
   });
 
-  if (candidates.length === 0) return -1; // 全問題クリア済み
-
+  if (candidates.length === 0) return -1; 
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-// 次の問題をロードする関数
 function loadNextQuestion() {
   lastSubmittedAnswer = "";
   isSubmitting = false;
@@ -143,7 +192,6 @@ function loadNextQuestion() {
   }
 }
 
-// 上部のステータス画面を最新データに書き換える関数
 function updateStatusDOM() {
   document.getElementById("user-rate").textContent = userRate;
   document.getElementById("user-solved").textContent = userSolved;
@@ -155,17 +203,15 @@ function updateStatusDOM() {
   }
   document.getElementById("user-accuracy").textContent = accuracy + "%";
 
-  // セーブ画面側にも連動して数値を反映
   if (document.getElementById("save-rate")) document.getElementById("save-rate").textContent = userRate;
   if (document.getElementById("save-solved")) document.getElementById("save-solved").textContent = userSolved;
   if (document.getElementById("save-attempts")) document.getElementById("save-attempts").textContent = userAttempts;
   if (document.getElementById("save-accuracy")) document.getElementById("save-accuracy").textContent = accuracy + "%";
 }
 
-// 正解判定（動的eloレーティング・上限キャップ組み込み版）
+// 正解判定
 function checkAnswer() {
   if (questions.length === 0 || currentQuestion >= questions.length) return;
-
   if (isSubmitting) return;
 
   let q = questions[currentQuestion];
@@ -195,12 +241,9 @@ function checkAnswer() {
   let result = document.getElementById("result");
   userAttempts++;
 
-  // ------------------------------------------
-  // ★eloレーティング計算ロジック（動的Kファクター ＆ キャップ）
-  // ------------------------------------------
   const rProblem = Number(q.difficulty) || 1200;
   const rUser = userRate;
-  const diff = rProblem - rUser; // 難易度と現在レートの差（正: 格上, 負: 格下）
+  const diff = rProblem - rUser; 
   const expectedScore = 1 / (1 + Math.pow(10, diff / 400));
   let rateChange = 0;
 
@@ -216,15 +259,26 @@ function checkAnswer() {
     result.style.color = "#00ffcc"; 
     userSolved++;
     q.isCleared = true;
-    createQuestionList(); // 問題一覧のクリア表示(✓)を更新
+    createQuestionList();
 
-    // ★正解時：格上ボーナス（格上ほどK値が拡張され跳ね上がる）
+    // ==========================================
+    // ★追加: 正解時にクリアタイムを記録し、現在のタイマーを停止
+    // ==========================================
+    addClearRecord(q.question, currentSeconds);
+    clearInterval(timerInterval);
+    isPlaying = false;
+    const startBtn = document.getElementById('timer-start-btn');
+    if (startBtn) {
+      startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+      startBtn.style.backgroundColor = '#0d8050';
+    }
+
     let dynamicK = 32 + (diff > 0 ? diff / 5 : 0);
     rateChange = Math.round(dynamicK * (1 - expectedScore));
     userRate += rateChange;
 
     updateStatusDOM();
-    autoSaveData(); // 正解時にオートセーブ
+    autoSaveData(); 
 
     setTimeout(() => {
       document.getElementById("answer").value = "";
@@ -235,18 +289,17 @@ function checkAnswer() {
     result.textContent = "不正解...";
     result.style.color = "#ef4444";
 
-    // ★不正解時：格下でのミスほどペナルティが大きくなるが、最大で -75 pt に制限
     const penaltyDiff = diff < 0 ? Math.abs(diff) : 0;
     let dynamicK = 32 + (penaltyDiff / 5);
-    let rawLoss = Math.round(dynamicK * (0 - expectedScore)); // マイナス値
+    let rawLoss = Math.round(dynamicK * (0 - expectedScore)); 
 
-    const MAX_LOSS = -75; // 減少上限キャップ
+    const MAX_LOSS = -75; 
     rateChange = Math.max(rawLoss, MAX_LOSS); 
 
-    userRate = Math.max(0, userRate + rateChange); // 0未満にはならない
+    userRate = Math.max(0, userRate + rateChange); 
     
     updateStatusDOM();
-    autoSaveData(); // 不正解時にオートセーブ
+    autoSaveData(); 
     
     setTimeout(() => {
       isSubmitting = false;
@@ -254,19 +307,13 @@ function checkAnswer() {
   }
 }
 
-// ==========================================
-// ★セーブ・ロード・リセット（データ消去）機能
-// ==========================================
-
-// オートセーブ（静かに保存）
 function autoSaveData() {
   saveDataToStorage();
 }
 
-// 手動セーブ（確認ダイアログ表示後にセーブ）
 function manualSaveData() {
   const confirmSave = confirm("現在の学習記録をセーブしますか？");
-  if (!confirmSave) return; // キャンセルされた場合は処理を中断
+  if (!confirmSave) return; 
 
   saveDataToStorage();
   const msg = document.getElementById("save-msg");
@@ -277,7 +324,6 @@ function manualSaveData() {
   }
 }
 
-// 実際の保存処理共通部
 function saveDataToStorage() {
   const clearedIndices = questions
     .map((q, idx) => q.isCleared ? idx : null)
@@ -288,13 +334,13 @@ function saveDataToStorage() {
     userSolved: userSolved,
     userAttempts: userAttempts,
     currentQuestion: currentQuestion,
-    clearedIndices: clearedIndices
+    clearedIndices: clearedIndices,
+    totalSeconds: totalSeconds // ★追加: 総経過時間をセーブデータに含める
   };
 
   localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
 }
 
-// ページ読み込み時にデータを復元
 function loadSaveData() {
   const json = localStorage.getItem("ctf_learning_data");
   if (!json) return;
@@ -305,6 +351,9 @@ function loadSaveData() {
     if (data.userSolved !== undefined) userSolved = data.userSolved;
     if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
     if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
+    
+    // ★追加: 総経過時間の復元
+    if (data.totalSeconds !== undefined) totalSeconds = data.totalSeconds; 
 
     if (Array.isArray(data.clearedIndices)) {
       data.clearedIndices.forEach(idx => {
@@ -313,28 +362,28 @@ function loadSaveData() {
     }
 
     updateStatusDOM();
+    updateDisplay(); // ★追加: 復元した時間を画面に反映
   } catch(e) {
     console.error("セーブデータの読み込み失敗:", e);
   }
 }
 
-// セーブデータの全消去（リセット機能）
 function resetSaveData() {
   const confirmFirst = confirm("本当に学習記録を完全消去しますか？\n（この操作は取り消せません）");
   if (!confirmFirst) return;
 
   localStorage.removeItem("ctf_learning_data");
 
-  // ステータスを初期化
   userRate = 1000;
   userSolved = 0;
   userAttempts = 0;
   currentQuestion = 0;
+  totalSeconds = 0; // ★追加: 総経過時間をリセット
 
-  // 問題のクリアフラグをリセット
   questions.forEach(q => { q.isCleared = false; });
 
   updateStatusDOM();
+  updateDisplay(); // ★追加: リセットした時間を画面に反映
   createQuestionList();
   showQuestion();
 
@@ -346,14 +395,6 @@ function resetSaveData() {
   }
 }
 
-// ------------------------------------------
-// ツール系・共通処理
-// ------------------------------------------
-
-// ------------------------------------------
-// ★追加: Base32 / ASCII Decimal (10進数) の機能
-// ------------------------------------------
-
 function runInlineBase32() {
   decodeBase32Logic('tool-base32-input', 'tool-base32-result');
 }
@@ -362,12 +403,11 @@ function decodeBase32Logic(inputId, resultId) {
   const input = document.getElementById(inputId).value.trim();
   if (!input) return;
 
-  // Base32デコードの実装
   const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   let bits = "";
   let decoded = "";
 
-  const cleanInput = input.toUpperCase().replace(/=+$/, ""); // パディングを削除
+  const cleanInput = input.toUpperCase().replace(/=+$/, ""); 
 
   try {
     for (let i = 0; i < cleanInput.length; i++) {
@@ -380,7 +420,6 @@ function decodeBase32Logic(inputId, resultId) {
 
     for (let i = 0; i + 8 <= bits.length; i += 8) {
       const chunk = bits.substr(i, 8);
-      // 8ビット揃っていない最後の端数は無視する
       if (chunk.length === 8) {
         decoded += String.fromCharCode(parseInt(chunk, 2));
       }
@@ -400,7 +439,6 @@ function decodeAsciiDecLogic(inputId, resultId) {
   if (!input) return;
 
   try {
-    // 数値をスペース、カンマ等で区切って配列化
     const numbers = input.split(/[\s,]+/);
     let decoded = "";
     
@@ -525,6 +563,49 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // ==========================================
+  // ★追加: DOM読み込み時にタイマーのボタンイベントを登録
+  // ==========================================
+  const startBtn = document.getElementById('timer-start-btn');
+  const resetBtn = document.getElementById('timer-reset-btn');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (isPlaying) {
+            // 一時停止処理
+            clearInterval(timerInterval);
+            startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+            startBtn.style.backgroundColor = '#0d8050';
+        } else {
+            // 開始処理
+            timerInterval = setInterval(() => {
+                currentSeconds++;
+                totalSeconds++;
+                updateDisplay();
+            }, 1000);
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> 停止';
+            startBtn.style.backgroundColor = '#c53030';
+        }
+        isPlaying = !isPlaying;
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        // リセット処理
+        clearInterval(timerInterval);
+        isPlaying = false;
+        currentSeconds = 0;
+        if (startBtn) {
+          startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+          startBtn.style.backgroundColor = '#0d8050';
+        }
+        updateDisplay();
+    });
+  }
+  // ==========================================
+
 });
 
 function runInlineCaesar() {
@@ -677,7 +758,6 @@ function runSelectedMainTool() {
       case 'ascii_dec':
         decodeAsciiDecLogic('tool-input', 'tool-main-result');
         break;
-
       case 'hex':
         decodeHexLogic('tool-input', 'tool-main-result');
         break;
@@ -725,11 +805,9 @@ function showResult(resultId, message, isError) {
       resultElement.style.color = "#00ffcc"; 
     }
   }
-
   refreshDropdownHeight();
 }
 
-// 問題一覧の自動生成（目次風リスト）
 function createQuestionList() {
   const listContainer = document.getElementById("question-list");
   if (!listContainer) return;
@@ -766,7 +844,6 @@ function createQuestionList() {
   });
 }
 
-// 一覧から問題を選択
 function selectQuestion(index) {
   currentQuestion = index; 
   showQuestion();            
@@ -777,7 +854,6 @@ function selectQuestion(index) {
   showScreen("play-screen"); 
 }
 
-// ヒントドロップダウンの開閉処理
 function toggleHint() {
   const panel = document.getElementById("hint-panel");
   if (!panel) return;
@@ -791,7 +867,6 @@ function toggleHint() {
   }
 }
 
-// 新しい問題が読み込まれた時に呼び出す関数
 function updateHintData(questionData) {
   const hintText = document.getElementById("hint-text");
   const panel = document.getElementById("hint-panel");
