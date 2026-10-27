@@ -21,6 +21,95 @@ function showScreen(screenId) {
   }
 }
 
+  // ==========================================
+// ★ タイマー機能 ＆ 総経過時間の管理
+// ==========================================
+let timerInterval = null;
+let timerSeconds = 0;       // 現在の問題のタイマー（秒）
+let totalElapsedSeconds = 0;// 累計経過時間（秒）
+let isTimerRunning = false;
+
+// 開始 / 停止切り替え
+function toggleTimer() {
+  if (isTimerRunning) {
+    stopTimer();
+  } else {
+    startTimer();
+  }
+}
+
+// 計測開始
+function startTimer() {
+  if (isTimerRunning) return;
+  isTimerRunning = true;
+  
+  const btn = document.getElementById("timer-toggle-btn");
+  const container = document.querySelector(".timer-container");
+  if (btn) {
+    btn.textContent = "停止";
+    btn.classList.add("running");
+  }
+  if (container) container.classList.add("running");
+
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    totalElapsedSeconds++; // 総経過時間も加算
+    updateTimerDOM();
+  }, 1000);
+}
+
+// 計測停止
+function stopTimer() {
+  isTimerRunning = false;
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const btn = document.getElementById("timer-toggle-btn");
+  const container = document.querySelector(".timer-container");
+  if (btn) {
+    btn.textContent = timerSeconds > 0 ? "再開" : "開始";
+    btn.classList.remove("running");
+  }
+  if (container) container.classList.remove("running");
+}
+
+// リセット (00:00に戻す)
+function resetTimer() {
+  stopTimer();
+  timerSeconds = 0;
+  updateTimerDOM();
+  const btn = document.getElementById("timer-toggle-btn");
+  if (btn) btn.textContent = "開始";
+}
+
+// タイマー表示 ＆ セーブ画面の経過時間表示を更新
+function updateTimerDOM() {
+  const display = document.getElementById("timer-display");
+  if (display) {
+    const mins = Math.floor(timerSeconds / 60);
+    const secs = timerSeconds % 60;
+    display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  // セーブ画面の総経過時間表示もリアルタイム更新
+  const saveElapsed = document.getElementById("save-elapsed");
+  if (saveElapsed) {
+    saveElapsed.textContent = formatDuration(totalElapsedSeconds);
+  }
+}
+
+// 秒数を「○時間○分○秒」または「○分○秒」に変換
+function formatDuration(totalSeconds) {
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  if (hrs > 0) {
+    return `${hrs}時間${String(mins).padStart(2, '0')}分${String(secs).padStart(2, '0')}秒`;
+  }
+  return `${mins}分${String(secs).padStart(2, '0')}秒`;
+}
+
 // 解答欄の下の「簡易解析ツール ▽」を開閉する関数
 function toggleDropdown() {
   const dropdown = document.getElementById('tools-dropdown');
