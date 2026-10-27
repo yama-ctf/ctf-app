@@ -83,6 +83,14 @@
           </div>
           <div class="exercise-body">
             <p id="question">問題が表示されます</p>
+            <div class="question-header-controls">
+            <!-- 追加: タイマーUI -->
+            <div class="timer-ui">
+              <span class="timer-display"><i class="fas fa-clock"></i> <span id="current-timer">00:00</span></span>
+              <button id="timer-start-btn" class="timer-btn start"><i class="fas fa-play"></i> 開始</button>
+              <button id="timer-reset-btn" class="timer-btn reset"><i class="fas fa-redo"></i></button>
+            </div>
+         
             
             <!-- ヒント機能のドロップダウンエリア -->
             <div style="margin-top: 15px;">
@@ -482,7 +490,27 @@
             <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc; font-size: 20px;">0</strong></p>
             <p>現在の正答率: <strong id="save-accuracy" style="color: #00ffcc; font-size: 20px;">0%</strong></p>
           </div>
-
+                  <!--★ 既存の正答率の下に追加 -->
+          <div class="stat-row divider">
+            <span>総経過時間 (計測時間):</span>
+            <div class="stat-time-col">
+              <span id="total-time-ja" class="highlight-green">0分00秒</span>
+              <span id="total-time-ms" class="sub-text">(00:00)</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <span>現在の問題の計測タイム:</span>
+            <span id="current-quest-time" class="highlight-blue">00:00</span>
+          </div>
+          
+          <!-- クリアタイム記録一覧 -->
+          <div class="clear-time-container">
+            <p class="clear-time-title">クリアタイム記録一覧:</p>
+            <ul id="clear-time-list" class="clear-time-list">
+              <!-- JSで動的に追加される要素の例 -->
+              <!-- <li><span class="quest-title">Q1: 無線LANのキャプチャデータに残されていた痕...</span><span class="time-badge"><i class="fas fa-stopwatch"></i> 01:29</span></li> -->
+            </ul>
+          </div>
           <!-- ★追加: セーブ・リセット操作ボタン領域 -->
           <div style="margin-top: 24px; border-top: 1px solid #1f2937; padding-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
             <button type="button" onclick="manualSaveData()" class="exercise-submit-btn" style="background-color: #0284c7;">
