@@ -422,3 +422,113 @@ html, body {
   font-size: 13px;
   color: #94a3b8;
 }
+/* --- ★タイマーUI (解析演習画面) --- */
+.question-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.timer-ui {
+  display: flex;
+  align-items: center;
+  background-color: #1a2332;
+  border-radius: 6px;
+  padding: 4px 8px;
+  border: 1px solid #2a3548;
+}
+.timer-display {
+  font-family: monospace;
+  font-size: 14px;
+  margin-right: 12px;
+  color: #a0aec0;
+}
+.timer-btn {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #fff;
+  transition: 0.2s;
+}
+.timer-btn.start {
+  background-color: #0d8050;
+  margin-right: 5px;
+}
+.timer-btn.start:hover { background-color: #0b6b43; }
+.timer-btn.reset {
+  color: #4a5568;
+}
+.timer-btn.reset:hover { color: #a0aec0; }
+
+/* --- ★記録画面 (セーブ・記録画面) --- */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #2a3548;
+}
+.stat-row.divider {
+  border-top: 1px solid #2a3548;
+  margin-top: 10px;
+}
+.stat-time-col {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+.highlight-green {
+  color: #00d28f;
+  font-weight: bold;
+  font-size: 18px;
+}
+.highlight-blue {
+  color: #4299e1;
+  font-weight: bold;
+  font-size: 16px;
+  font-family: monospace;
+}
+.sub-text {
+  color: #718096;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+/* ★クリアタイム記録一覧 */
+.clear-time-container {
+  margin-top: 20px;
+}
+.clear-time-title {
+  font-size: 13px;
+  color: #a0aec0;
+  margin-bottom: 10px;
+}
+.clear-time-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.clear-time-list li {
+  background-color: #131a26;
+  border: 1px solid #2a3548;
+  border-radius: 6px;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.quest-title {
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+.time-badge {
+  color: #00d28f;
+  font-family: monospace;
+}
