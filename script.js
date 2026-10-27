@@ -8,6 +8,59 @@ let userAttempts = 0; // 試行回数
 let lastSubmittedAnswer = "";
 let isSubmitting = false; // 【連打防止】送信処理中フラグ
 
+// ==========================================
+// ★追加: タイマー用の変数群
+// ==========================================
+let timerInterval;
+let currentSeconds = 0;
+let totalSeconds = 0;
+let isPlaying = false;
+
+// ==========================================
+// ★追加: タイマーフォーマット・表示更新・記録関数
+// ==========================================
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function formatTimeJa(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}分${s}秒`;
+}
+
+function updateDisplay() {
+  const currentFormatted = formatTime(currentSeconds);
+  const currentTimerEl = document.getElementById('current-timer');
+  const currentQuestTimeEl = document.getElementById('current-quest-time');
+  const totalTimeJaEl = document.getElementById('total-time-ja');
+  const totalTimeMsEl = document.getElementById('total-time-ms');
+
+  if (currentTimerEl) currentTimerEl.textContent = currentFormatted;
+  if (currentQuestTimeEl) currentQuestTimeEl.textContent = currentFormatted;
+  
+  if (totalTimeJaEl) {
+      totalTimeJaEl.textContent = formatTimeJa(totalSeconds);
+      if (totalTimeMsEl) totalTimeMsEl.textContent = `(${formatTime(totalSeconds)})`;
+  }
+}
+
+function addClearRecord(questionTitle, seconds) {
+  const list = document.getElementById('clear-time-list');
+  if (!list) return;
+  const li = document.createElement('li');
+  
+  // タイトルを丸める処理（20文字程度）
+  const shortTitle = questionTitle.length > 20 ? questionTitle.substring(0, 20) + '...' : questionTitle;
+  
+  li.innerHTML = `<span class="quest-title">${shortTitle}</span><span class="time-badge"><i class="fas fa-stopwatch"></i> ${formatTime(seconds)}</span>`;
+  list.prepend(li); // 最新を一番上に追加
+}
+// ==========================================
+
+
 // 画面切り替え関数
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.page-screen');
@@ -96,6 +149,12 @@ function showQuestion() {
   document.getElementById("question").textContent = q.question;
   // 問題が表示されるタイミングでヒント内容も更新する
   updateHintData(q);
+
+  // ==========================================
+  // ★追加: 別の問題が表示された時は現在の秒数をリセットして表示更新
+  // ==========================================
+  currentSeconds = 0;
+  updateDisplay();
 }
 
 // 未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
@@ -198,6 +257,18 @@ function checkAnswer() {
     q.isCleared = true;
     createQuestionList(); // 問題一覧のクリア表示(✓)を更新
     
+    // ==========================================
+    // ★追加: 正解時にクリアタイムを記録し、現在のタイマーを停止
+    // ==========================================
+    addClearRecord(q.question, currentSeconds);
+    clearInterval(timerInterval);
+    isPlaying = false;
+    const startBtn = document.getElementById('timer-start-btn');
+    if (startBtn) {
+      startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+      startBtn.style.backgroundColor = '#0d8050';
+    }
+    
     // ★正解時：格上ボーナス（格上ほどK値が拡張され跳ね上がる）
     let dynamicK = 32 + (diff > 0 ? diff / 5 : 0);
     rateChange = Math.round(dynamicK * (1 - expectedScore));
@@ -257,7 +328,8 @@ function saveDataToStorage() {
     userSolved: userSolved,
     userAttempts: userAttempts,
     currentQuestion: currentQuestion,
-    clearedIndices: clearedIndices
+    clearedIndices: clearedIndices,
+    totalSeconds: totalSeconds // ★追加: 総経過時間をセーブデータに含める
   };
   localStorage.setItem("ctf_learning_data", JSON.stringify(saveData));
 }
@@ -272,12 +344,17 @@ function loadSaveData() {
     if (data.userSolved !== undefined) userSolved = data.userSolved;
     if (data.userAttempts !== undefined) userAttempts = data.userAttempts;
     if (data.currentQuestion !== undefined) currentQuestion = data.currentQuestion;
+    
+    // ★追加: 総経過時間の復元
+    if (data.totalSeconds !== undefined) totalSeconds = data.totalSeconds; 
+    
     if (Array.isArray(data.clearedIndices)) {
       data.clearedIndices.forEach(idx => {
         if (questions[idx]) questions[idx].isCleared = true;
       });
     }
     updateStatusDOM();
+    updateDisplay(); // ★追加: 復元した時間を画面に反映
   } catch(e) {
     console.error("セーブデータの読み込み失敗:", e);
   }
@@ -294,11 +371,13 @@ function resetSaveData() {
   userSolved = 0;
   userAttempts = 0;
   currentQuestion = 0;
+  totalSeconds = 0; // ★追加: 総経過時間をリセット
   
   // 問題のクリアフラグをリセット
   questions.forEach(q => { q.isCleared = false; });
   
   updateStatusDOM();
+  updateDisplay(); // ★追加: リセットした時間を画面に反映
   createQuestionList();
   showQuestion();
   
@@ -477,6 +556,48 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // ==========================================
+  // ★追加: DOM読み込み時にタイマーのボタンイベントを登録
+  // ==========================================
+  const startBtn = document.getElementById('timer-start-btn');
+  const resetBtn = document.getElementById('timer-reset-btn');
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (isPlaying) {
+            // 一時停止処理
+            clearInterval(timerInterval);
+            startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+            startBtn.style.backgroundColor = '#0d8050';
+        } else {
+            // 開始処理
+            timerInterval = setInterval(() => {
+                currentSeconds++;
+                totalSeconds++;
+                updateDisplay();
+            }, 1000);
+            startBtn.innerHTML = '<i class="fas fa-pause"></i> 停止';
+            startBtn.style.backgroundColor = '#c53030';
+        }
+        isPlaying = !isPlaying;
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        // リセット処理
+        clearInterval(timerInterval);
+        isPlaying = false;
+        currentSeconds = 0;
+        if (startBtn) {
+          startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
+          startBtn.style.backgroundColor = '#0d8050';
+        }
+        updateDisplay();
+    });
+  }
+  // ==========================================
 });
 
 function runInlineCaesar() {
