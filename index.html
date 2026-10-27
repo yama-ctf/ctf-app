@@ -77,24 +77,10 @@
       <div id="play-screen" class="page-screen">
         <h1>解析演習</h1>
         <div class="exercise-card">
-         <!-- 2. 解析演習画面内の現在の問題ヘッダー -->
-        <div class="exercise-header">
-          <h3>現在の問題</h3>
-        
-          <!-- ★ 追加: 右端グループ（タイマー ＋ 難易度） -->
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- タイマーUI -->
-            <div class="timer-container">
-              <span class="timer-icon">⏱️</span>
-              <span id="timer-display" class="timer-display">00:00</span>
-              <button type="button" id="timer-toggle-btn" onclick="toggleTimer()" class="timer-btn">開始</button>
-              <button type="button" id="timer-reset-btn" onclick="resetTimer()" class="timer-btn-reset" title="00:00にリセット">↺</button>
-            </div>
-    
-            <!-- 既存の難易度表示 -->
+          <div class="exercise-header">
+            <h3>現在の問題</h3>
             <span id="difficulty" class="exercise-difficulty">難易度: 読み込み中...</span>
           </div>
-        </div>
           <div class="exercise-body">
             <p id="question">問題が表示されます</p>
             
@@ -484,31 +470,28 @@
 
       </div>
 
-    <!-- 6. セーブ・記録画面 -->
-<div id="save-screen" class="page-screen">
-  <h1>セーブ・記録</h1>
-  <p style="color: #94a3b8; margin-bottom: 20px;">現在のあなたのプレイ実績です。回答するたびに自動保存（オートセーブ）されます。</p>
+      <!-- 6. セーブ・記録画面 -->
+      <div id="save-screen" class="page-screen">
+        <h1>セーブ・記録</h1>
+        <p style="color: #94a3b8; margin-bottom: 20px;">現在のあなたのプレイ実績です。回答するたびに自動保存（オートセーブ）されます。</p>
 
-  <div class="exercise-card" style="max-width: 500px;">
-    <div style="line-height: 2.2; font-size: 16px;">
-      <p>現在のレート: <strong id="save-rate" style="color: #00ffcc; font-size: 20px;">1000</strong></p>
-      <p>クリア問題数: <strong id="save-solved" style="color: #00ffcc; font-size: 20px;">0</strong></p>
-      <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc; font-size: 20px;">0</strong></p>
-      <p>現在の正答率: <strong id="save-accuracy" style="color: #00ffcc; font-size: 20px;">0%</strong></p>
-      
-      <!-- ★ 追加: 経過時間（総計測時間） -->
-      <p>総経過時間: <strong id="save-elapsed" style="color: #00ffcc; font-size: 20px;">0分00秒</strong></p>
-    </div>
-   <!-- ★追加: セーブ・リセット操作ボタン領域 -->
-    <div style="margin-top: 24px; border-top: 1px solid #1f2937; padding-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-      <button type="button" onclick="manualSaveData()" class="exercise-submit-btn" style="background-color: #0284c7;">💾 手動セーブ</button>
-      <button type="button" onclick="resetSaveData()" class="exercise-submit-btn" style="background-color: #dc2626;">🗑️ データリセット（消去）</button>
-    </div>
-    <p id="save-msg" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
-  </div>
-</div>
+        <div class="exercise-card" style="max-width: 500px;">
+          <div style="line-height: 2.2; font-size: 16px;">
+            <p>現在のレート: <strong id="save-rate" style="color: #00ffcc; font-size: 20px;">1000</strong></p>
+            <p>クリア問題数: <strong id="save-solved" style="color: #00ffcc; font-size: 20px;">0</strong></p>
+            <p>総解答試行数: <strong id="save-attempts" style="color: #00ffcc; font-size: 20px;">0</strong></p>
+            <p>現在の正答率: <strong id="save-accuracy" style="color: #00ffcc; font-size: 20px;">0%</strong></p>
+          </div>
 
-        
+          <!-- ★追加: セーブ・リセット操作ボタン領域 -->
+          <div style="margin-top: 24px; border-top: 1px solid #1f2937; padding-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="button" onclick="manualSaveData()" class="exercise-submit-btn" style="background-color: #0284c7;">
+              💾 手動セーブ
+            </button>
+            <button type="button" onclick="resetSaveData()" class="exercise-submit-btn" style="background-color: #dc2626;">
+              🗑️ データリセット（消去）
+            </button>
+          </div>
 
           <!-- ★追加: 保存/消去完了時の通知メッセージ -->
           <p id="save-msg" style="margin-top: 15px; font-weight: bold; min-height: 20px;"></p>
