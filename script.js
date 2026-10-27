@@ -47,6 +47,41 @@ function updateDisplay() {
   }
 }
 
+// ★変更: タイマーの状態に合わせてボタン表示を統一する
+function updateTimerButton() {
+  const startBtn = document.getElementById('timer-start-btn');
+  if (!startBtn) return;
+
+  if (isPlaying) {
+    startBtn.innerHTML = '<i class="fas fa-pause"></i> 停止';
+    startBtn.style.backgroundColor = '#c53030';
+  } else {
+    startBtn.innerHTML = '<i class="fas fa-play"></i> 再開';
+    startBtn.style.backgroundColor = '#0d8050';
+  }
+}
+
+// ★変更: タイマー開始処理を共通化（解析演習画面を開いたときにも呼び出す）
+function startTimer() {
+  if (isPlaying) return; // 二重にタイマーが動くのを防ぐ
+
+  timerInterval = setInterval(() => {
+    currentSeconds++;
+    totalSeconds++;
+    updateDisplay();
+  }, 1000);
+
+  isPlaying = true;
+  updateTimerButton();
+}
+
+// ★変更: タイマー停止処理を共通化
+function stopTimer() {
+  clearInterval(timerInterval);
+  isPlaying = false;
+  updateTimerButton();
+}
+
 function addClearRecord(questionTitle, seconds) {
   const list = document.getElementById('clear-time-list');
   if (!list) return;
@@ -70,6 +105,11 @@ function showScreen(screenId) {
   const targetScreen = document.getElementById(screenId);
   if (targetScreen) {
     targetScreen.classList.add('active');
+  }
+
+  // ★変更: 解析演習画面を開いたらタイマーを自動開始する
+  if (screenId === 'play-screen') {
+    startTimer();
   }
 }
 
@@ -155,6 +195,12 @@ function showQuestion() {
   // ==========================================
   currentSeconds = 0;
   updateDisplay();
+
+  // ★変更: 問題が切り替わったら、その問題のタイマーを自動開始する
+  const playScreen = document.getElementById('play-screen');
+  if (playScreen && playScreen.classList.contains('active')) {
+    startTimer();
+  }
 }
 
 // 未クリアの問題の中から、現在のレートに最も近い難易度の問題を選ぶ関数
@@ -261,13 +307,8 @@ function checkAnswer() {
     // ★追加: 正解時にクリアタイムを記録し、現在のタイマーを停止
     // ==========================================
     addClearRecord(q.question, currentSeconds);
-    clearInterval(timerInterval);
-    isPlaying = false;
-    const startBtn = document.getElementById('timer-start-btn');
-    if (startBtn) {
-      startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
-      startBtn.style.backgroundColor = '#0d8050';
-    }
+    // ★変更: 正解したらタイマーを停止し、ボタンを「再開」にする
+    stopTimer();
     
     // ★正解時：格上ボーナス（格上ほどK値が拡張され跳ね上がる）
     let dynamicK = 32 + (diff > 0 ? diff / 5 : 0);
@@ -558,43 +599,28 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // ==========================================
-  // ★追加: DOM読み込み時にタイマーのボタンイベントを登録
+  // ★変更: タイマーのボタンイベントを登録
   // ==========================================
   const startBtn = document.getElementById('timer-start-btn');
   const resetBtn = document.getElementById('timer-reset-btn');
 
   if (startBtn) {
     startBtn.addEventListener('click', () => {
-        if (isPlaying) {
-            // 一時停止処理
-            clearInterval(timerInterval);
-            startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
-            startBtn.style.backgroundColor = '#0d8050';
-        } else {
-            // 開始処理
-            timerInterval = setInterval(() => {
-                currentSeconds++;
-                totalSeconds++;
-                updateDisplay();
-            }, 1000);
-            startBtn.innerHTML = '<i class="fas fa-pause"></i> 停止';
-            startBtn.style.backgroundColor = '#c53030';
-        }
-        isPlaying = !isPlaying;
+      // ★変更: 動作中なら「停止」、停止中なら「再開」
+      if (isPlaying) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
     });
   }
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-        // リセット処理
-        clearInterval(timerInterval);
-        isPlaying = false;
-        currentSeconds = 0;
-        if (startBtn) {
-          startBtn.innerHTML = '<i class="fas fa-play"></i> 開始';
-          startBtn.style.backgroundColor = '#0d8050';
-        }
-        updateDisplay();
+      // ★変更: リセット後は停止状態にして「再開」と表示する
+      stopTimer();
+      currentSeconds = 0;
+      updateDisplay();
     });
   }
   // ==========================================
