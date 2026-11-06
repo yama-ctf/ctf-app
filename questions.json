@@ -1,4 +1,4 @@
-  },
+[
   {
     "question": "流出したデータベースから不可解な文字列が発見された。元の情報を復元せよ。\n\n『NDYgNGMgNDEgNDcgN2IgNzMgMzMgNjMgNzIgMzMgNzQgNWYgNjIgMzcgNzQgMzMgNWYgMzMgMzAgMzkgN2Q=』",
     "hint": "まず末尾が『=』で終わるエンコードを解除してください。すると2文字ずつの英数字が現れるので、それをさらにテキストに戻します。",
