@@ -564,7 +564,7 @@
     "difficulty": 991
   },
   {
-    "question": "攻撃者のC2サーバーを解析中に見慣れない形式のデータを見つけた。フラグを導き出せ。\n\n『IZJWSZ3FOU3DEZZSGIYDGNJUGM2TQ===』",
+    "question": "攻撃者のC2サーバーを解析中に見慣れない形式のデータを見つけた。フラグを導き出せ。\n\n『IZGECR33ONUDIZBQO5PWEN3UGNPTSMRQPU======』",
     "hint": "大文字のA〜Zと数字の2〜7のみで構成されており、末尾に『=』が付くことがあります。32種類の文字を使うエンコードです。",
     "answer": "FLAG{sh4d0w_b7t3_920}",
     "difficulty": 1043
@@ -600,4 +600,3 @@
     "difficulty": 2097
   }
 ]
-
